@@ -9,29 +9,36 @@ def ppc_type_parse(type: str):
     }
     return type_map.get(type.lower(), None)
 
+def server_map(server):
+    servers = {
+        "asia": "ap",
+        "korea": "kr",
+        "china": "cn",
+        "japan": "jp" 
+    }
+    return servers.get(type.lower(), None)
 
-def merge_images_horizontal(urls, output_file="merged.png"):
-    # Ambil semua gambar dari URL
+
+def merge_images_horizontal(urls):
+    from PIL import Image
+    import requests
+
     images = [Image.open(BytesIO(requests.get(url).content)) for url in urls]
-
-    # Samakan tinggi gambar agar rapi
-    heights = [img.height for img in images]
-    min_height = min(heights)
+    min_height = min(img.height for img in images)
     resized = [
         img.resize((int(img.width * min_height / img.height), min_height))
         for img in images
     ]
 
-    # Hitung total ukuran canvas
     total_width = sum(img.width for img in resized)
     new_im = Image.new("RGB", (total_width, min_height))
 
-    # Tempel satu per satu
     x_offset = 0
     for img in resized:
         new_im.paste(img, (x_offset, 0))
         x_offset += img.width
 
-    # Simpan hasil
-    new_im.save(output_file)
-    return output_file
+    output = BytesIO()
+    new_im.save(output, format="PNG")
+    output.seek(0)
+    return output
