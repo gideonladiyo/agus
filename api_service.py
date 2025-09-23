@@ -5,7 +5,6 @@ import requests
 class ApiService:
     def __init__(self):
         self.baseUrl = "https://api.huaxu.app/servers/"
-        self.baseImageUrl = baseConfig.baseImgUrl
 
     def ppc_boss(self, server, type):
         response = requests.get(f"{self.baseUrl}{server}/ppc/current/{type}")
