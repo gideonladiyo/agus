@@ -1,6 +1,8 @@
 from PIL import Image
 import requests
 from io import BytesIO
+import aiohttp
+import asyncio
 
 def ppc_type_parse(type: str):
     type_map = {
@@ -16,29 +18,35 @@ def server_map(server):
         "china": "cn",
         "japan": "jp" 
     }
-    return servers.get(type.lower(), None)
+    return servers.get(server.lower(), None)
 
 
-def merge_images_horizontal(urls):
-    from PIL import Image
-    import requests
+async def fetch_image(session, url):
+    async with session.get(url) as resp:
+        if resp.status == 200:
+            return Image.open(BytesIO(await resp.read())).convert("RGBA")
+        return None
 
-    images = [Image.open(BytesIO(requests.get(url).content)) for url in urls]
-    min_height = min(img.height for img in images)
-    resized = [
-        img.resize((int(img.width * min_height / img.height), min_height))
-        for img in images
-    ]
 
-    total_width = sum(img.width for img in resized)
-    new_im = Image.new("RGB", (total_width, min_height))
+async def merge_images_horizontal(urls):
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_image(session, url) for url in urls]
+        images = await asyncio.gather(*tasks)
 
+    images = [img for img in images if img]
+
+    widths, heights = zip(*(i.size for i in images))
+    total_width = sum(widths)
+    max_height = max(heights)
+
+    merged = Image.new("RGBA", (total_width, max_height))
     x_offset = 0
-    for img in resized:
-        new_im.paste(img, (x_offset, 0))
+    for img in images:
+        merged.paste(img, (x_offset, 0))
         x_offset += img.width
 
-    output = BytesIO()
-    new_im.save(output, format="PNG")
-    output.seek(0)
-    return output
+    # return BytesIO
+    bio = BytesIO()
+    merged.save(bio, format="PNG")
+    bio.seek(0)
+    return bio

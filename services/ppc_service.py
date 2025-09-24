@@ -10,7 +10,7 @@ class PpcService:
 
     def get_current_ppc_bosses(self, server, type):
         data = self.get_current_ppc(server, type)
-        return [PpcBoss.parsing_json(boss).to_dict() for boss in data["ppc"]["bosses"]]
+        return [PpcBoss.parsing_json(boss).to_dict() for boss in data["data"]["ppc"]["bosses"]]
 
     def get_current_ppc_item(self, server, type):
         data = self.get_current_ppc(server, type)
