@@ -3,6 +3,11 @@ import requests
 from io import BytesIO
 import aiohttp
 import asyncio
+from discord import Embed
+import discord
+from googletrans import Translator
+
+translator = Translator()
 
 def ppc_type_parse(type: str):
     type_map = {
@@ -50,3 +55,51 @@ async def merge_images_horizontal(urls):
     merged.save(bio, format="PNG")
     bio.seek(0)
     return bio
+
+
+async def translate_text(text, src="en", dest="en"):
+    """Fungsi untuk translate teks dengan await"""
+    if not text:
+        return ""
+    result = await translator.translate(text, src=src, dest=dest)
+    return result.text
+
+
+def wz_embed(title, json):
+    """Bikin embed untuk warzone"""
+    embed = Embed(title=title, color=discord.Color.red())
+
+    for wz_item in json["area"]:
+        # Buffs
+        buffs_text = ""
+        for buff in wz_item.get("buffs", []):
+            buffs_text += (
+                f"- {buff['name']}\n"
+                f"  {buff['description']}\n"
+            )
+
+        # Weathers
+        weathers_text = ""
+        for w in wz_item.get("weathers", []):
+            weathers_text += (
+                f"- {w['name']}\n"
+                f"  {w['description']}\n"
+            )
+
+        # Konten utama
+        text_content = (
+            f"{wz_item['description']}\n"
+            f"{buffs_text}"
+            f"{weathers_text}"
+        )
+
+        # Tambahin field ke embed
+        embed.add_field(
+            name=wz_item["name"],
+            value=text_content if text_content.strip() else "No data",
+            inline=True,
+        )
+
+    return embed
+
+# ============== WARZONE ================
