@@ -102,4 +102,6 @@ def wz_embed(title, json):
 
     return embed
 
-# ============== WARZONE ================
+# ============== ERROR COMMAND ================
+def error_message():
+    return f"There is an error. Please check your command or check `!help` for list commands or ask <@{533104933168480286}> as the creator"
