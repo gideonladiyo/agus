@@ -46,7 +46,7 @@ jobs:
             echo "🐳 Mengecek apakah container agus-bot sedang berjalan"
             if [ "$(sudo docker ps -aq -f name=agus-bot)" ]; then
                 echo "🛑 Menghentikan dan menghapus container lama..."
-                sudo docker stop agus
+                sudo docker stop agus-bot
                 sudo docker rm agus-bot
             fi
 
@@ -58,4 +58,4 @@ jobs:
               -v /home/gideonladiyo/agus/data:/app/data \
               agus-bot
 
-            echo "🚀 Bot berhasil dideploy
+            echo "🚀 Bot berhasil dideploy"
