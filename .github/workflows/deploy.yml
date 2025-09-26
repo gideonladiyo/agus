@@ -35,9 +35,7 @@ jobs:
             fi
 
             echo "🔑 Membuat file .env dari secret"
-            cat > .env <<EOF
-            DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
-            EOF
+            echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
 
             echo "📥 Menandai folder git sebagai aman"
             git config --global --add safe.directory /home/gideonladiyo/agus
@@ -48,13 +46,13 @@ jobs:
             echo "🐳 Mengecek apakah container agus-bot sedang berjalan"
             if [ "$(sudo docker ps -aq -f name=agus-bot)" ]; then
                 echo "🛑 Menghentikan dan menghapus container lama..."
-                docker stop agus
-                docker rm agus-bot
+                sudo docker stop agus
+                sudo docker rm agus-bot
             fi
 
             echo "🐳 Membuild dan menjalankan kontainer Docker"
-            docker build -t agus-bot .
-            docker run -d \
+            sudo docker build -t agus-bot .
+            sudo docker run -d \
               --name agus-bot \
               --env-file .env \
               -v /home/gideonladiyo/agus/data:/app/data \
