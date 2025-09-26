@@ -1,13 +1,9 @@
 from PIL import Image
-import requests
 from io import BytesIO
 import aiohttp
 import asyncio
 from discord import Embed
 import discord
-from googletrans import Translator
-
-translator = Translator()
 
 def ppc_type_parse(type: str):
     type_map = {
@@ -56,15 +52,6 @@ async def merge_images_horizontal(urls):
     bio.seek(0)
     return bio
 
-
-async def translate_text(text, src="en", dest="en"):
-    """Fungsi untuk translate teks dengan await"""
-    if not text:
-        return ""
-    result = await translator.translate(text, src=src, dest=dest)
-    return result.text
-
-
 def wz_embed(title, json):
     """Bikin embed untuk warzone"""
     embed = Embed(title=title, color=discord.Color.red())
@@ -105,3 +92,10 @@ def wz_embed(title, json):
 # ============== ERROR COMMAND ================
 def error_message():
     return f"There is an error. Please check your command or check `!help` for list commands or ask <@{533104933168480286}> as the creator"
+
+async def server_permission(ctx):
+    server_ids = [1273463276847632405, 1010450041514754109]
+    if ctx.guild.id not in server_ids:
+        await ctx.send("These server doesn't have permission to use Agus")
+    else:
+        return

@@ -2,7 +2,6 @@ from config import baseConfig
 
 # ================ PPC =========================
 
-
 class PpcBoss:
     def __init__(self, id, name, imgUrl):
         self.id = id

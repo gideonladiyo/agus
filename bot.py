@@ -4,21 +4,20 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from services.api_service import api_service
 from utils import (
-    ppc_type_parse,
+    server_permission,
     merge_images_horizontal,
     server_map,
     wz_embed,
     error_message,
 )
 from discord import Embed
-from models import PpcModel, PpcBoss
 from services.ppc_service import ppc_service
-from io import BytesIO
 from config import baseConfig
 import time
 from services.warzone_service import warzone_service
 from translate_korea import TranslateKorea
 from services.ppc_timer_service import ppc_timer
+import traceback
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -42,6 +41,7 @@ async def on_command_error(ctx, error):
 
 @bot.command()
 async def help(ctx):
+    await server_permission(ctx)
     embed = Embed(
         title="**Help**", description="List of commands:", color=discord.Color.red()
     )
@@ -67,18 +67,29 @@ async def help(ctx):
     )
     embed.add_field(
         name="!ultiscore (difficulty) (time). Ex: !ultiscore hell 10",
-        value="Shows PPC ultimate score based on difficulty",
+        value="Shows PPC Ultimate score based on difficulty and kill time",
         inline=False,
     ),
     embed.add_field(
         name="!ultitotalscore (knight) (chaos) (hell). Ex: !ultitotalscore 8 8 10",
         value="Calculate total score based on each difficulty's timer",
         inline=False,
+    ),
+    embed.add_field(
+        name="!advscore (difficulty) (time). Ex: !advscore Knight 5",
+        value="Shows PPC Advanced score based on difficulty and kill time",
+        inline=False
+    ),
+    embed.add_field(
+        name="!advtotalscore (knight) (chaos) (hell). Ex: !advtotalscore 7 7 7",
+        value="Calculate total score based on each difficulty's timer",
+        inline=False
     )
     await ctx.send(embed=embed)
 
 @bot.command()
 async def ppc(ctx, server, type):
+    await server_permission(ctx)
     try:
         bosses = ppc_service.get_current_ppc_bosses(server_map(server), type)
 
@@ -98,6 +109,7 @@ async def ppc(ctx, server, type):
 
 @bot.command()
 async def predppc(ctx, type):
+    await server_permission(ctx)
     try:
         ppc_item = ppc_service.get_current_ppc_item("ap", type)
         if type.lower() == "ultimate":
@@ -137,6 +149,7 @@ async def predppc(ctx, type):
 
 @bot.command()
 async def wz(ctx, server):
+    await server_permission(ctx)
     try:
         current_wz = warzone_service.get_wz_map(server)
         print(current_wz)
@@ -147,6 +160,7 @@ async def wz(ctx, server):
 
 @bot.command()
 async def predwz(ctx):
+    await server_permission(ctx)
     try:
         current_wz = warzone_service.get_wz_map("asia")
         pred_id = current_wz["activity"] - 1
@@ -156,13 +170,16 @@ async def predwz(ctx):
         ]
         embed = wz_embed(f"**Warzone prediction on asia server!**", pred_wz)
         await ctx.send(embed=embed)
-    except:
+    except Exception as e:
         await ctx.send(error_message())
+        print(repr(e))
+        traceback.print_exc()
 
 @bot.command()
 async def ultitotalscore(ctx, knight: int, chaos: int, hell: int):
+    await server_permission(ctx)
     try:
-        total_score = ppc_timer.get_total_score(knight, chaos, hell)
+        total_score = ppc_timer.get_total_score(knight, chaos, hell, "ultimate")
         embed = Embed(
             title=f"Total score: ",
             description=f"**{total_score}**",
@@ -174,8 +191,9 @@ async def ultitotalscore(ctx, knight: int, chaos: int, hell: int):
 
 @bot.command()
 async def ultiscore(ctx, difficulty, time: int):
+    await server_permission(ctx)
     try:
-        score = ppc_timer.get_score(time, difficulty.capitalize())
+        score = ppc_timer.get_score(time, difficulty.capitalize(), "ultimate")
         embed = Embed(
             title=f"{difficulty.capitalize()} {time}s score:",
             description=f"**{score}**",
@@ -184,5 +202,36 @@ async def ultiscore(ctx, difficulty, time: int):
         await ctx.send(embed=embed)
     except:
         await ctx.send(error_message())
+
+
+@bot.command()
+async def advtotalscore(ctx, knight: int, chaos: int, hell: int):
+    await server_permission(ctx)
+    try:
+        total_score = ppc_timer.get_total_score(knight, chaos, hell, "advanced")
+        embed = Embed(
+            title=f"Total score: ",
+            description=f"**{total_score}**",
+            color=discord.Color.red(),
+        )
+        await ctx.send(embed=embed)
+    except:
+        await ctx.send(error_message())
+
+
+@bot.command()
+async def advscore(ctx, difficulty, time: int):
+    await server_permission(ctx)
+    try:
+        score = ppc_timer.get_score(time, difficulty.capitalize(), "advanced")
+        embed = Embed(
+            title=f"{difficulty.capitalize()} {time}s score:",
+            description=f"**{score}**",
+            color=discord.Color.red(),
+        )
+        await ctx.send(embed=embed)
+    except:
+        await ctx.send(error_message())
+
 
 bot.run(TOKEN)

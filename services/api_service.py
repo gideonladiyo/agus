@@ -1,4 +1,3 @@
-from models import PpcBoss
 from utils import ppc_type_parse
 import requests
 

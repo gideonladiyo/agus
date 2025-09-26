@@ -1,4 +1,3 @@
-import os
 import json
 
 output_file = "korea_warzone_buff_unique.json"
