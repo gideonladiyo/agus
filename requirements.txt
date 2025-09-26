@@ -3,3 +3,4 @@ python-dotenv
 requests
 pillow
 aiohttp
+pandas
