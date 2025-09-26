@@ -1,6 +1,12 @@
 # Gunakan image Python minimal
 FROM python:3.11-slim
 
+# Install dependency sistem yang dibutuhkan
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set working directory di dalam container
 WORKDIR /app
 
