@@ -2,23 +2,19 @@ import pandas as pd
 
 class PpcTimer:
     def __init__(self):
-        self.ult_filepath = "timer_ult.csv"
-        self.adv_filepath = "timer_adv.csv"
+        self.ult_url = "https://docs.google.com/spreadsheets/d/1z_L4MEGv5q89OFkuN2RNI1gjajddD3_NG169_f0RNrA/gviz/tq?tqx=out:csv&sheet=ult"
+        self.adv_url = "https://docs.google.com/spreadsheets/d/1z_L4MEGv5q89OFkuN2RNI1gjajddD3_NG169_f0RNrA/gviz/tq?tqx=out:csv&sheet=adv"
+        self.boss_stat_url = "https://docs.google.com/spreadsheets/d/1z_L4MEGv5q89OFkuN2RNI1gjajddD3_NG169_f0RNrA/gviz/tq?tqx=out:csv&sheet=ppc_boss"
 
-    def read_data(self):
-        data = pd.read_csv(self.ult_filepath, sep=";", thousands=".")
-        data.rename(columns={"Kill Time (value)": "kill_time"}, inplace=True)
-        return data
-    
-    def read_adv(self):
-        data = pd.read_csv(self.adv_filepath, sep=",")
+    def read_data(self, url):
+        data = pd.read_csv(url)
         return data
 
     def get_score(self, time, stage, type):
         if type.lower() == "advanced":
-            data = self.read_adv()
+            data = self.read_data(self.adv_url)
         else:
-            data = self.read_data()
+            data = self.read_data(self.ult_url)
         score = data.loc[data["kill_time"] == time, stage].iloc[0]
         return score
 

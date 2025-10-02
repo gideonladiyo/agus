@@ -53,7 +53,6 @@ async def merge_images_horizontal(urls):
     return bio
 
 def wz_embed(title, json):
-    """Bikin embed untuk warzone"""
     embed = Embed(title=title, color=discord.Color.red())
 
     for wz_item in json["area"]:
@@ -87,6 +86,24 @@ def wz_embed(title, json):
             inline=True,
         )
 
+    return embed
+
+def ppc_boss_stat_embed(data):
+    embed = Embed(
+        title=data["name"],
+        description=f"""
+        **Weakness:** {data["weakness"]}
+        
+        **Start Time:** {data["start_time"]}s
+        
+        **HP:**
+        Knight: {data["knight"]}
+        Chaos: {data["chaos"]}
+        Hell: {data["hell"]}
+        """,
+        color=discord.Color.red()
+    )
+    embed.set_image(url=data["img_url"])
     return embed
 
 # ============== ERROR COMMAND ================
