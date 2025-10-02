@@ -28,7 +28,6 @@ class PpcService:
     
     def get_boss_stat(self, name):
         data = self.read_data(self.boss_stat_url)
-        print(data)
         boss_data = data[data["slug"] == name.lower()]
         row = boss_data.iloc[0]
         return {
@@ -39,6 +38,15 @@ class PpcService:
             "start_time": row["start_time"],
             "weakness": row["weakness"],
             "img_url": row["img_url"]
+        }
+    
+    def get_boss_list(self):
+        data = self.read_data(self.boss_stat_url)
+        names = data["boss"].tolist()
+        slugs = data["slug"].tolist()
+        return {
+            "names": names,
+            "slugs": slugs
         }
 
     # ============ PPC TIMER ============

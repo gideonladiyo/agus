@@ -2,7 +2,6 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-from services.api_service import api_service
 from utils import (
     server_permission,
     merge_images_horizontal,
@@ -13,12 +12,8 @@ from utils import (
 )
 from discord import Embed
 from services.ppc_service import ppc_service
-from config import baseConfig
-import time
 from services.warzone_service import warzone_service
-from translate_korea import TranslateKorea
-from services.ppc_timer_service import ppc_timer
-import traceback
+# from translate_korea import TranslateKorea
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -88,9 +83,15 @@ async def help(ctx):
     ),
     embed.add_field(
         name="!ppcboss (bossname). Ex: !ppcboss ephialtes",
-        value="Return boss stats",
+        value="Return boss stats based on boss name in lowercase",
         inline=False,
-    )
+    ),
+    embed.add_field(
+        name="!ppcbosslist. Ex: !ppcbosslist",
+        value="Return boss name and slug",
+        inline=False,
+    ),
+    
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -269,6 +270,29 @@ async def ppcboss(ctx, name):
         boss_data = ppc_service.get_boss_stat(name)
         print(boss_data["name"])
         embed = ppc_boss_stat_embed(boss_data)
+        await ctx.send(embed = embed)
+    except:
+        await ctx.send(error_message())
+
+@bot.command()
+async def ppcbosslist(ctx):
+    await server_permission(ctx)
+    try:
+        boss_list = ppc_service.get_boss_list()
+        bosses_string = "\n".join(
+            [
+                f"- {boss_list['names'][i]} ({boss_list['slugs'][i]})"
+                for i in range(len(boss_list["names"]))
+            ]
+        )
+        embed = Embed(
+            title="List PPC Bosses:",
+            description=bosses_string,
+            color=discord.Color.red()
+        )
+        embed.set_image(
+            url="https://assets.huaxu.app/browse/glb/image/uifubenchallengemapboss/bosssingleimghard.png"
+        )
         await ctx.send(embed = embed)
     except:
         await ctx.send(error_message())
