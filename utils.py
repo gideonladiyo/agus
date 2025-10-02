@@ -88,23 +88,26 @@ def wz_embed(title, json):
 
     return embed
 
-def ppc_boss_stat_embed(data):
-    embed = Embed(
-        title=data["name"],
-        description=f"""
-        **Weakness:** {data["weakness"]}
-        
-        **Start Time:** {data["start_time"]}s
-        
-        **HP:**
-        Knight: {data["knight"]}
-        Chaos: {data["chaos"]}
-        Hell: {data["hell"]}
-        """,
-        color=discord.Color.red()
-    )
+
+def ppc_boss_stat_embed(data: dict) -> Embed:
+    difficulties = {"knight": "🛡️ Knight", "chaos": "💀 Chaos", "hell": "🔥 Hell"}
+
+    embed = Embed(title=f"⚔️ Boss: {data['name']}", color=discord.Color.red())
+
+    embed.add_field(name="🔥 Weakness", value=data["weakness"], inline=False)
+    embed.add_field(name="⏳ Start Time", value=f"{data['start_time']}s", inline=False)
+
+    for key, label in difficulties.items():
+        embed.add_field(
+            name=f"{label}", value=f"{data[key]}", inline=True
+        )
+
     embed.set_image(url=data["img_url"])
+
+    embed.set_footer(text="PPC Boss Stats")
+
     return embed
+
 
 # ============== ERROR COMMAND ================
 def error_message():
