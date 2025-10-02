@@ -109,43 +109,54 @@ async def ppc(ctx, server, type):
 
 @bot.command()
 async def predppc(ctx, type):
-    await server_permission(ctx)
     try:
-        ppc_item = ppc_service.get_current_ppc_item("ap", type)
-        if type.lower() == "ultimate":
-            idx = 0
-        else:
-            idx = 1
-        week_json = api_service.ppc_week("kr", ppc_item["activity"] + idx, type)
-        boss_names = "\n".join(
-            [f"• {b['name']}" for b in week_json["data"]["ppc"]["bosses"]]
-        )
-        img_urls = [
-            f"{baseConfig.baseImgUrl}{b['icon']}.webp"
-            for b in week_json["data"]["ppc"]["bosses"]
-        ]
-
-        embed = Embed(
-            title=f"Week 1", description=boss_names, color=discord.Color.blue()
-        )
-
-        start_time = time.perf_counter()
-        merged_img = await merge_images_horizontal(img_urls)
-        end_time = time.perf_counter()
-        print(f"Week 1: {(end_time - start_time):.4f}")
-        file = discord.File(merged_img, filename=f"bosses.png")
-        embed.set_image(url=f"attachment://bosses.png")
-
-        start_time = time.perf_counter()
-        await ctx.send(
-            content=f"PPC {type} boss prediction for the next 3 weeks:",
-            embed=embed,
-            file=file,
-        )
-        end_time = time.perf_counter()
-        print(f"Uploading time: {(end_time - start_time):.4f}")
+        await ctx.send(embed=Embed(
+            title="**This command is deprecated**",
+            color=discord.Color.red()
+        ))
     except:
-        await ctx.send(error_message())
+        await ctx.send(
+            embed=Embed(
+                title="**This command is deprecated**", color=discord.Color.red()
+            )
+        )
+    # await server_permission(ctx)
+    # try:
+    #     ppc_item = ppc_service.get_current_ppc_item("ap", type)
+    #     if type.lower() == "ultimate":
+    #         idx = 0
+    #     else:
+    #         idx = 1
+    #     week_json = api_service.ppc_week("kr", ppc_item["activity"] + idx, type)
+    #     boss_names = "\n".join(
+    #         [f"• {b['name']}" for b in week_json["data"]["ppc"]["bosses"]]
+    #     )
+    #     img_urls = [
+    #         f"{baseConfig.baseImgUrl}{b['icon']}.webp"
+    #         for b in week_json["data"]["ppc"]["bosses"]
+    #     ]
+
+    #     embed = Embed(
+    #         title=f"Week 1", description=boss_names, color=discord.Color.blue()
+    #     )
+
+    #     start_time = time.perf_counter()
+    #     merged_img = await merge_images_horizontal(img_urls)
+    #     end_time = time.perf_counter()
+    #     print(f"Week 1: {(end_time - start_time):.4f}")
+    #     file = discord.File(merged_img, filename=f"bosses.png")
+    #     embed.set_image(url=f"attachment://bosses.png")
+
+    #     start_time = time.perf_counter()
+    #     await ctx.send(
+    #         content=f"PPC {type} boss prediction for the next 3 weeks:",
+    #         embed=embed,
+    #         file=file,
+    #     )
+    #     end_time = time.perf_counter()
+    #     print(f"Uploading time: {(end_time - start_time):.4f}")
+    # except:
+    #     await ctx.send(error_message())
 
 @bot.command()
 async def wz(ctx, server):
@@ -160,20 +171,32 @@ async def wz(ctx, server):
 
 @bot.command()
 async def predwz(ctx):
-    await server_permission(ctx)
     try:
-        current_wz = warzone_service.get_wz_map("asia")
-        pred_id = current_wz["activity"] - 1
-        pred_wz = warzone_service.get_wz_map("korea", pred_id)
-        pred_wz["area"] = [
-            TranslateKorea.translate_korea_warzone(area) for area in pred_wz["area"]
-        ]
-        embed = wz_embed(f"**Warzone prediction on asia server!**", pred_wz)
-        await ctx.send(embed=embed)
-    except Exception as e:
-        await ctx.send(error_message())
-        print(repr(e))
-        traceback.print_exc()
+        await ctx.send(
+            embed=Embed(
+                title="**This command is deprecated**", color=discord.Color.red()
+            )
+        )
+    except:
+        await ctx.send(
+            embed=Embed(
+                title="**This command is deprecated**", color=discord.Color.red()
+            )
+        )
+    # await server_permission(ctx)
+    # try:
+    #     current_wz = warzone_service.get_wz_map("asia")
+    #     pred_id = current_wz["activity"] - 1
+    #     pred_wz = warzone_service.get_wz_map("korea", pred_id)
+    #     pred_wz["area"] = [
+    #         TranslateKorea.translate_korea_warzone(area) for area in pred_wz["area"]
+    #     ]
+    #     embed = wz_embed(f"**Warzone prediction on asia server!**", pred_wz)
+    #     await ctx.send(embed=embed)
+    # except Exception as e:
+    #     await ctx.send(error_message())
+    #     print(repr(e))
+    #     traceback.print_exc()
 
 @bot.command()
 async def ultitotalscore(ctx, knight: int, chaos: int, hell: int):
