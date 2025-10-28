@@ -82,7 +82,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Deploy to Railway
-        uses: railwayapp/railway-action@v2
+        uses: railwayapp/actions/deploy@v1
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
           service: beautiful-miracle
