@@ -76,13 +76,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: Deploy to Railway
-        uses: railwayapp/github-action@v3
+      - name: Deploy to Railway (via bervProject Action) 🚀
+        uses: bervProject/railway-deploy@main
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         with:
-          token: ${{ secrets.RAILWAY_TOKEN }}
-          service: 'agus' 
+          service: "agus" 
 
