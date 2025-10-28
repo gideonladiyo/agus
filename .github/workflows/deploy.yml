@@ -72,18 +72,17 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Railway CLI
+      - name: Install dependencies
         run: |
-          curl -fsSL https://railway.app/install.sh | sh
-          echo "$HOME/.railway/bin" >> $GITHUB_PATH
+          pip install -r requirements.txt
 
       - name: Deploy to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          railway up --service agus --yes
+        uses: railwayapp/github-action@v3
+        with:
+          token: ${{ secrets.RAILWAY_TOKEN }}
+          service: 'agus' 
+
