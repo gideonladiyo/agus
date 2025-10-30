@@ -4,6 +4,10 @@ import aiohttp
 import asyncio
 from discord import Embed
 import discord
+from config import baseConfig
+from logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 def ppc_type_parse(type: str):
@@ -78,12 +82,13 @@ def ppc_boss_stat_embed(data: dict) -> Embed:
 
 # ============== ERROR COMMAND ================
 def error_message():
-    return f"There is an error. Please check your command or check `!help` for list commands or ask <@{533104933168480286}> as the creator"
+    return f"There is an error. Please check your command or check `!help` for list commands or ask <@{baseConfig.adminUserId}> as the creator"
 
 
 async def server_permission(ctx):
-    server_ids = [1273463276847632405, 1010450041514754109]
-    if ctx.guild.id not in server_ids:
-        await ctx.send("These server doesn't have permission to use Agus")
-    else:
-        return
+    """Check if the server has permission to use the bot."""
+    if ctx.guild.id not in baseConfig.allowedServerIds:
+        logger.warning(f"Unauthorized server attempted to use bot: {ctx.guild.id}")
+        await ctx.send("This server doesn't have permission to use Agus")
+        raise PermissionError(f"Server {ctx.guild.id} not authorized")
+    logger.debug(f"Server permission granted for: {ctx.guild.id}")

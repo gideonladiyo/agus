@@ -13,7 +13,10 @@ from utils import (
 from discord import Embed
 from services.ppc_service import ppc_service
 from services.warzone_service import warzone_service
-# from translate_korea import TranslateKorea
+from logger import setup_logger
+from helpers import send_score_embed, handle_command_error
+
+logger = setup_logger(__name__)
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -24,80 +27,74 @@ bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
 @bot.event
 async def on_ready():
-    print(f"✅ Bot {bot.user} sudah online!")
+    logger.info(f"✅ Bot {bot.user} is now online!")
 
 @bot.event
 async def on_command_error(ctx, error):
+    """Global error handler for bot commands."""
     if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(error_message())
+        logger.warning(f"Missing required argument in command: {error}")
+        await ctx.send(f"❌ Missing argument: {error.param.name}. Use `!help` for command usage.")
     elif isinstance(error, commands.BadArgument):
-        await ctx.send(error_message())
+        logger.warning(f"Bad argument in command: {error}")
+        await ctx.send(f"❌ Invalid argument: {error}. Use `!help` for command usage.")
+    elif isinstance(error, commands.CommandNotFound):
+        logger.debug(f"Command not found: {error}")
+        await ctx.send(f"❌ Command not found. Use `!help` to see available commands.")
     else:
+        logger.error(f"Unexpected error: {error}", exc_info=True)
         await ctx.send(error_message())
 
 @bot.command()
 async def help(ctx):
-    await server_permission(ctx)
-    embed = Embed(
-        title="**Help**", description="List of commands:", color=discord.Color.red()
-    )
-    embed.add_field(
-        name="!ppc (server) (type). Ex: !ppc asia ultimate",
-        value="Shows current PPC bosses based on server and type (Ultimate/Advanced)",
-        inline=False,
-    )
-    embed.add_field(
-        name="!predppc (type). Ex: !predppc ultimate",
-        value="Shows global server PPC prediction based on Korea server",
-        inline=False,
-    )
-    embed.add_field(
-        name="!wz (server). Ex: !wz asia",
-        value="Shows warzone stage based on server",
-        inline=False,
-    )
-    embed.add_field(
-        name="!predwz. Ex: !predwz",
-        value="Shows global next Warzone prediction base on Korea server",
-        inline=False,
-    )
-    embed.add_field(
-        name="!ultiscore (difficulty) (time). Ex: !ultiscore hell 10",
-        value="Shows PPC Ultimate score based on difficulty and kill time",
-        inline=False,
-    ),
-    embed.add_field(
-        name="!ultitotalscore (knight) (chaos) (hell). Ex: !ultitotalscore 8 8 10",
-        value="Calculate total score based on each difficulty's timer",
-        inline=False,
-    ),
-    embed.add_field(
-        name="!advscore (difficulty) (time). Ex: !advscore Knight 5",
-        value="Shows PPC Advanced score based on difficulty and kill time",
-        inline=False
-    ),
-    embed.add_field(
-        name="!advtotalscore (knight) (chaos) (hell). Ex: !advtotalscore 7 7 7",
-        value="Calculate total score based on each difficulty's timer",
-        inline=False
-    ),
-    embed.add_field(
-        name="!ppcboss (bossname). Ex: !ppcboss ephialtes",
-        value="Return boss stats based on boss name in lowercase",
-        inline=False,
-    ),
-    embed.add_field(
-        name="!ppcbosslist. Ex: !ppcbosslist",
-        value="Return boss name and slug",
-        inline=False,
-    ),
-    
-    await ctx.send(embed=embed)
+    """Display help information for all available commands."""
+    try:
+        await server_permission(ctx)
+
+        commands_list = [
+            ("!ppc (server) (type). Ex: !ppc asia ultimate",
+             "Shows current PPC bosses based on server and type (Ultimate/Advanced)"),
+            ("!predppc (type). Ex: !predppc ultimate",
+             "Shows global server PPC prediction based on Korea server (DEPRECATED)"),
+            ("!wz (server). Ex: !wz asia",
+             "Shows warzone stage based on server"),
+            ("!predwz. Ex: !predwz",
+             "Shows global next Warzone prediction base on Korea server (DEPRECATED)"),
+            ("!ultiscore (difficulty) (time). Ex: !ultiscore hell 10",
+             "Shows PPC Ultimate score based on difficulty and kill time"),
+            ("!ultitotalscore (knight) (chaos) (hell). Ex: !ultitotalscore 8 8 10",
+             "Calculate total score based on each difficulty's timer"),
+            ("!advscore (difficulty) (time). Ex: !advscore Knight 5",
+             "Shows PPC Advanced score based on difficulty and kill time"),
+            ("!advtotalscore (knight) (chaos) (hell). Ex: !advtotalscore 7 7 7",
+             "Calculate total score based on each difficulty's timer"),
+            ("!ppcboss (bossname). Ex: !ppcboss ephialtes",
+             "Return boss stats based on boss name in lowercase"),
+            ("!ppcbosslist. Ex: !ppcbosslist",
+             "Return boss name and slug"),
+        ]
+
+        embed = Embed(
+            title="**Help**",
+            description="List of commands:",
+            color=discord.Color.red()
+        )
+
+        for name, value in commands_list:
+            embed.add_field(name=name, value=value, inline=False)
+
+        await ctx.send(embed=embed)
+        logger.info(f"Help command executed by user: {ctx.author}")
+    except Exception as e:
+        await handle_command_error(ctx, e, "help")
 
 @bot.command()
 async def ppc(ctx, server, type):
-    await server_permission(ctx)
+    """Display current PPC bosses for a server."""
     try:
+        await server_permission(ctx)
+        logger.info(f"PPC command: server={server}, type={type}")
+
         bosses = ppc_service.get_current_ppc_bosses(server_map(server), type)
 
         boss_names = "\n".join([f"**{b['name']}**" for b in bosses])
@@ -111,173 +108,123 @@ async def ppc(ctx, server, type):
         embed.set_image(url="attachment://bosses.png")
 
         await ctx.send(embed=embed, file=file)
-    except:
-        await ctx.send(error_message())
+        logger.info(f"PPC command completed successfully for {server} {type}")
+    except Exception as e:
+        await handle_command_error(ctx, e, "ppc")
 
 @bot.command()
 async def predppc(ctx, type):
-    try:
-        await ctx.send(embed=Embed(
-            title="**This command is deprecated**",
-            color=discord.Color.red()
-        ))
-    except:
-        await ctx.send(
-            embed=Embed(
-                title="**This command is deprecated**", color=discord.Color.red()
-            )
-        )
-    # await server_permission(ctx)
-    # try:
-    #     ppc_item = ppc_service.get_current_ppc_item("ap", type)
-    #     if type.lower() == "ultimate":
-    #         idx = 0
-    #     else:
-    #         idx = 1
-    #     week_json = api_service.ppc_week("kr", ppc_item["activity"] + idx, type)
-    #     boss_names = "\n".join(
-    #         [f"• {b['name']}" for b in week_json["data"]["ppc"]["bosses"]]
-    #     )
-    #     img_urls = [
-    #         f"{baseConfig.baseImgUrl}{b['icon']}.webp"
-    #         for b in week_json["data"]["ppc"]["bosses"]
-    #     ]
-
-    #     embed = Embed(
-    #         title=f"Week 1", description=boss_names, color=discord.Color.blue()
-    #     )
-
-    #     start_time = time.perf_counter()
-    #     merged_img = await merge_images_horizontal(img_urls)
-    #     end_time = time.perf_counter()
-    #     print(f"Week 1: {(end_time - start_time):.4f}")
-    #     file = discord.File(merged_img, filename=f"bosses.png")
-    #     embed.set_image(url=f"attachment://bosses.png")
-
-    #     start_time = time.perf_counter()
-    #     await ctx.send(
-    #         content=f"PPC {type} boss prediction for the next 3 weeks:",
-    #         embed=embed,
-    #         file=file,
-    #     )
-    #     end_time = time.perf_counter()
-    #     print(f"Uploading time: {(end_time - start_time):.4f}")
-    # except:
-    #     await ctx.send(error_message())
+    """Deprecated command - PPC prediction is no longer available."""
+    logger.info(f"Deprecated predppc command called by {ctx.author}")
+    await ctx.send(embed=Embed(
+        title="**This command is deprecated**",
+        description="PPC prediction is no longer available.",
+        color=discord.Color.red()
+    ))
 
 @bot.command()
 async def wz(ctx, server):
-    await server_permission(ctx)
+    """Display current warzone information for a server."""
     try:
+        await server_permission(ctx)
+        logger.info(f"WZ command: server={server}")
+
         current_wz = warzone_service.get_wz_map(server)
-        print(current_wz)
+        logger.debug(f"Warzone data retrieved: {current_wz}")
+
         embed = wz_embed(f"**Current Warzone on {server} server!**", current_wz)
         await ctx.send(embed=embed)
-    except:
-        await ctx.send(error_message())
+        logger.info(f"WZ command completed successfully for {server}")
+    except Exception as e:
+        await handle_command_error(ctx, e, "wz")
 
 @bot.command()
 async def predwz(ctx):
-    try:
-        await ctx.send(
-            embed=Embed(
-                title="**This command is deprecated**", color=discord.Color.red()
-            )
-        )
-    except:
-        await ctx.send(
-            embed=Embed(
-                title="**This command is deprecated**", color=discord.Color.red()
-            )
-        )
-    # await server_permission(ctx)
-    # try:
-    #     current_wz = warzone_service.get_wz_map("asia")
-    #     pred_id = current_wz["activity"] - 1
-    #     pred_wz = warzone_service.get_wz_map("korea", pred_id)
-    #     pred_wz["area"] = [
-    #         TranslateKorea.translate_korea_warzone(area) for area in pred_wz["area"]
-    #     ]
-    #     embed = wz_embed(f"**Warzone prediction on asia server!**", pred_wz)
-    #     await ctx.send(embed=embed)
-    # except Exception as e:
-    #     await ctx.send(error_message())
-    #     print(repr(e))
-    #     traceback.print_exc()
+    """Deprecated command - Warzone prediction is no longer available."""
+    logger.info(f"Deprecated predwz command called by {ctx.author}")
+    await ctx.send(embed=Embed(
+        title="**This command is deprecated**",
+        description="Warzone prediction is no longer available.",
+        color=discord.Color.red()
+    ))
 
 @bot.command()
 async def ultitotalscore(ctx, knight: int, chaos: int, hell: int):
-    await server_permission(ctx)
+    """Calculate total PPC Ultimate score."""
     try:
+        await server_permission(ctx)
+        logger.info(f"Ultimate total score: K={knight}, C={chaos}, H={hell}")
+
         total_score = ppc_service.get_total_score(knight, chaos, hell, "ultimate")
-        embed = Embed(
-            title=f"Total score: ",
-            description=f"**{total_score}**",
-            color=discord.Color.red(),
-        )
-        await ctx.send(embed=embed)
-    except:
-        await ctx.send(error_message())
+        await send_score_embed(ctx, "Total score:", total_score)
+        logger.info(f"Ultimate total score completed: {total_score}")
+    except Exception as e:
+        await handle_command_error(ctx, e, "ultitotalscore")
 
 @bot.command()
 async def ultiscore(ctx, difficulty, time: int):
-    await server_permission(ctx)
+    """Calculate PPC Ultimate score for a specific difficulty and time."""
     try:
-        score = ppc_service.get_score(time, difficulty.capitalize(), "ultimate")
-        embed = Embed(
-            title=f"{difficulty.capitalize()} {time}s score:",
-            description=f"**{score}**",
-            color=discord.Color.red(),
-        )
-        await ctx.send(embed=embed)
-    except:
-        await ctx.send(error_message())
+        await server_permission(ctx)
+        difficulty = difficulty.capitalize()
+        logger.info(f"Ultimate score: {difficulty} {time}s")
 
+        score = ppc_service.get_score(time, difficulty, "ultimate")
+        await send_score_embed(ctx, f"{difficulty} {time}s score:", score)
+        logger.info(f"Ultimate score completed: {score}")
+    except Exception as e:
+        await handle_command_error(ctx, e, "ultiscore")
 
 @bot.command()
 async def advtotalscore(ctx, knight: int, chaos: int, hell: int):
-    await server_permission(ctx)
+    """Calculate total PPC Advanced score."""
     try:
-        total_score = ppc_service.get_total_score(knight, chaos, hell, "advanced")
-        embed = Embed(
-            title=f"Total score: ",
-            description=f"**{total_score}**",
-            color=discord.Color.red(),
-        )
-        await ctx.send(embed=embed)
-    except:
-        await ctx.send(error_message())
+        await server_permission(ctx)
+        logger.info(f"Advanced total score: K={knight}, C={chaos}, H={hell}")
 
+        total_score = ppc_service.get_total_score(knight, chaos, hell, "advanced")
+        await send_score_embed(ctx, "Total score:", total_score)
+        logger.info(f"Advanced total score completed: {total_score}")
+    except Exception as e:
+        await handle_command_error(ctx, e, "advtotalscore")
 
 @bot.command()
 async def advscore(ctx, difficulty, time: int):
-    await server_permission(ctx)
+    """Calculate PPC Advanced score for a specific difficulty and time."""
     try:
-        score = ppc_service.get_score(time, difficulty.capitalize(), "advanced")
-        embed = Embed(
-            title=f"{difficulty.capitalize()} {time}s score:",
-            description=f"**{score}**",
-            color=discord.Color.red(),
-        )
-        await ctx.send(embed=embed)
-    except:
-        await ctx.send(error_message())
+        await server_permission(ctx)
+        difficulty = difficulty.capitalize()
+        logger.info(f"Advanced score: {difficulty} {time}s")
+
+        score = ppc_service.get_score(time, difficulty, "advanced")
+        await send_score_embed(ctx, f"{difficulty} {time}s score:", score)
+        logger.info(f"Advanced score completed: {score}")
+    except Exception as e:
+        await handle_command_error(ctx, e, "advscore")
 
 @bot.command()
 async def ppcboss(ctx, name):
-    await server_permission(ctx)
+    """Display PPC boss statistics."""
     try:
+        await server_permission(ctx)
+        logger.info(f"PPC boss command: {name}")
+
         boss_data = ppc_service.get_boss_stat(name)
-        print(boss_data["name"])
+        logger.info(f"Boss data retrieved: {boss_data['name']}")
+
         embed = ppc_boss_stat_embed(boss_data)
-        await ctx.send(embed = embed)
-    except:
-        await ctx.send(error_message())
+        await ctx.send(embed=embed)
+        logger.info(f"PPC boss command completed for {name}")
+    except Exception as e:
+        await handle_command_error(ctx, e, "ppcboss")
 
 @bot.command()
 async def ppcbosslist(ctx):
-    await server_permission(ctx)
+    """Display list of all PPC bosses."""
     try:
+        await server_permission(ctx)
+        logger.info("PPC boss list command")
+
         boss_list = ppc_service.get_boss_list()
         bosses_string = "\n".join(
             [
@@ -293,8 +240,9 @@ async def ppcbosslist(ctx):
         embed.set_image(
             url="https://assets.huaxu.app/browse/glb/image/uifubenchallengemapboss/bosssingleimghard.png"
         )
-        await ctx.send(embed = embed)
-    except:
-        await ctx.send(error_message())
+        await ctx.send(embed=embed)
+        logger.info("PPC boss list command completed")
+    except Exception as e:
+        await handle_command_error(ctx, e, "ppcbosslist")
 
 bot.run(TOKEN)
