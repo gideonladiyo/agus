@@ -82,7 +82,7 @@ def error_message():
 
 
 async def server_permission(ctx):
-    server_ids = [1273463276847632405, 1010450041514754109, 648563331162177536]
+    server_ids = [1273463276847632405, 1010450041514754109, 648563331162177536, 1238540250494533692]
     if ctx.guild.id not in server_ids:
         await ctx.send("These server doesn't have permission to use Agus")
     else:
