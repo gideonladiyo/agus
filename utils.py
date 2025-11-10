@@ -66,7 +66,7 @@ def wz_embed(title, json):
 
 def ppc_boss_stat_embed(data: dict) -> Embed:
     difficulties = {"knight": "🛡️ Knight", "chaos": "💀 Chaos", "hell": "🔥 Hell"}
-    embed = Embed(title=f"⚔️ Boss: {data['name']}", color=discord.Color.red())
+    embed = Embed(title=f"⚔️ Boss **{data['name']}**", color=discord.Color.red())
     embed.add_field(name="🔥 Weakness", value=data["weakness"], inline=False)
     embed.add_field(name="⏳ Start Time", value=f"{data['start_time']}s", inline=False)
     for key, label in difficulties.items():
@@ -78,11 +78,11 @@ def ppc_boss_stat_embed(data: dict) -> Embed:
 
 # ============== ERROR COMMAND ================
 def error_message():
-    return f"There is an error. Please check your command or check `!help` for list commands or ask <@{533104933168480286}> as the creator"
+    return f"There is an error. Please check your command or check `!help` for list commands."
 
 
 async def server_permission(ctx):
-    server_ids = [1273463276847632405, 1010450041514754109]
+    server_ids = [1273463276847632405, 1010450041514754109, 648563331162177536]
     if ctx.guild.id not in server_ids:
         await ctx.send("These server doesn't have permission to use Agus")
     else:
