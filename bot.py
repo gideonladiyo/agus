@@ -96,23 +96,23 @@ async def help(ctx):
 
 @bot.command()
 async def ppc(ctx, server, type):
-    await server_permission(ctx)
-    try:
-        bosses = ppc_service.get_current_ppc_bosses(server_map(server), type)
+    if await server_permission(ctx):
+        try:
+            bosses = ppc_service.get_current_ppc_bosses(server_map(server), type)
 
-        boss_names = "\n".join([f"**{b['name']}**" for b in bosses])
-        embed = Embed(
-            title=f"PPC {type}", description=boss_names, color=discord.Color.blue()
-        )
+            boss_names = "\n".join([f"**{b['name']}**" for b in bosses])
+            embed = Embed(
+                title=f"PPC {type}", description=boss_names, color=discord.Color.blue()
+            )
 
-        merged_img = await merge_images_horizontal(b["imgUrl"] for b in bosses)
+            merged_img = await merge_images_horizontal(b["imgUrl"] for b in bosses)
 
-        file = discord.File(merged_img, filename="bosses.png")
-        embed.set_image(url="attachment://bosses.png")
+            file = discord.File(merged_img, filename="bosses.png")
+            embed.set_image(url="attachment://bosses.png")
 
-        await ctx.send(embed=embed, file=file)
-    except:
-        await ctx.send(error_message())
+            await ctx.send(embed=embed, file=file)
+        except:
+            await ctx.send(error_message())
 
 @bot.command()
 async def predppc(ctx, type):
@@ -167,14 +167,14 @@ async def predppc(ctx, type):
 
 @bot.command()
 async def wz(ctx, server):
-    await server_permission(ctx)
-    try:
-        current_wz = warzone_service.get_wz_map(server)
-        print(current_wz)
-        embed = wz_embed(f"**Current Warzone on {server} server!**", current_wz)
-        await ctx.send(embed=embed)
-    except:
-        await ctx.send(error_message())
+    if await server_permission(ctx):
+        try:
+            current_wz = warzone_service.get_wz_map(server)
+            print(current_wz)
+            embed = wz_embed(f"**Current Warzone on {server} server!**", current_wz)
+            await ctx.send(embed=embed)
+        except:
+            await ctx.send(error_message())
 
 @bot.command()
 async def predwz(ctx):
@@ -207,94 +207,94 @@ async def predwz(ctx):
 
 @bot.command()
 async def ultitotalscore(ctx, knight: int, chaos: int, hell: int):
-    await server_permission(ctx)
-    try:
-        total_score = ppc_service.get_total_score(knight, chaos, hell, "ultimate")
-        embed = Embed(
-            title=f"Total score: ",
-            description=f"**{total_score}**",
-            color=discord.Color.red(),
-        )
-        await ctx.send(embed=embed)
-    except:
-        await ctx.send(error_message())
+    if await server_permission(ctx):
+        try:
+            total_score = ppc_service.get_total_score(knight, chaos, hell, "ultimate")
+            embed = Embed(
+                title=f"Total score: ",
+                description=f"**{total_score}**",
+                color=discord.Color.red(),
+            )
+            await ctx.send(embed=embed)
+        except:
+            await ctx.send(error_message())
 
 @bot.command()
 async def ultiscore(ctx, difficulty, time: int):
-    await server_permission(ctx)
-    try:
-        score = ppc_service.get_score(time, difficulty.capitalize(), "ultimate")
-        embed = Embed(
-            title=f"{difficulty.capitalize()} {time}s score:",
-            description=f"**{score}**",
-            color=discord.Color.red(),
-        )
-        await ctx.send(embed=embed)
-    except:
-        await ctx.send(error_message())
+    if await server_permission(ctx):
+        try:
+            score = ppc_service.get_score(time, difficulty.capitalize(), "ultimate")
+            embed = Embed(
+                title=f"{difficulty.capitalize()} {time}s score:",
+                description=f"**{score}**",
+                color=discord.Color.red(),
+            )
+            await ctx.send(embed=embed)
+        except:
+            await ctx.send(error_message())
 
 
 @bot.command()
 async def advtotalscore(ctx, knight: int, chaos: int, hell: int):
-    await server_permission(ctx)
-    try:
-        total_score = ppc_service.get_total_score(knight, chaos, hell, "advanced")
-        embed = Embed(
-            title=f"Total score: ",
-            description=f"**{total_score}**",
-            color=discord.Color.red(),
-        )
-        await ctx.send(embed=embed)
-    except:
-        await ctx.send(error_message())
+    if await server_permission(ctx):
+        try:
+            total_score = ppc_service.get_total_score(knight, chaos, hell, "advanced")
+            embed = Embed(
+                title=f"Total score: ",
+                description=f"**{total_score}**",
+                color=discord.Color.red(),
+            )
+            await ctx.send(embed=embed)
+        except:
+            await ctx.send(error_message())
 
 
 @bot.command()
 async def advscore(ctx, difficulty, time: int):
-    await server_permission(ctx)
-    try:
-        score = ppc_service.get_score(time, difficulty.capitalize(), "advanced")
-        embed = Embed(
-            title=f"{difficulty.capitalize()} {time}s score:",
-            description=f"**{score}**",
-            color=discord.Color.red(),
-        )
-        await ctx.send(embed=embed)
-    except:
-        await ctx.send(error_message())
+    if await server_permission(ctx):
+        try:
+            score = ppc_service.get_score(time, difficulty.capitalize(), "advanced")
+            embed = Embed(
+                title=f"{difficulty.capitalize()} {time}s score:",
+                description=f"**{score}**",
+                color=discord.Color.red(),
+            )
+            await ctx.send(embed=embed)
+        except:
+            await ctx.send(error_message())
 
 @bot.command()
 async def ppcboss(ctx, name):
-    await server_permission(ctx)
-    try:
-        boss_data = ppc_service.get_boss_stat(name)
-        print(boss_data["name"])
-        embed = ppc_boss_stat_embed(boss_data)
-        await ctx.send(embed = embed)
-    except:
-        await ctx.send(error_message())
+    if await server_permission(ctx):
+        try:
+            boss_data = ppc_service.get_boss_stat(name)
+            print(boss_data["name"])
+            embed = ppc_boss_stat_embed(boss_data)
+            await ctx.send(embed = embed)
+        except:
+            await ctx.send(error_message())
 
 @bot.command()
 async def ppcbosslist(ctx):
-    await server_permission(ctx)
-    try:
-        boss_list = ppc_service.get_boss_list()
-        bosses_string = "\n".join(
-            [
-                f"- {boss_list['names'][i]} ({boss_list['slugs'][i]})"
-                for i in range(len(boss_list["names"]))
-            ]
-        )
-        embed = Embed(
-            title="List PPC Bosses:",
-            description=bosses_string,
-            color=discord.Color.red()
-        )
-        embed.set_image(
-            url="https://assets.huaxu.app/browse/glb/image/uifubenchallengemapboss/bosssingleimghard.png"
-        )
-        await ctx.send(embed = embed)
-    except:
-        await ctx.send(error_message())
+    if await server_permission(ctx):
+        try:
+            boss_list = ppc_service.get_boss_list()
+            bosses_string = "\n".join(
+                [
+                    f"- {boss_list['names'][i]} ({boss_list['slugs'][i]})"
+                    for i in range(len(boss_list["names"]))
+                ]
+            )
+            embed = Embed(
+                title="List PPC Bosses:",
+                description=bosses_string,
+                color=discord.Color.red()
+            )
+            embed.set_image(
+                url="https://assets.huaxu.app/browse/glb/image/uifubenchallengemapboss/bosssingleimghard.png"
+            )
+            await ctx.send(embed = embed)
+        except:
+            await ctx.send(error_message())
 
 bot.run(TOKEN)
