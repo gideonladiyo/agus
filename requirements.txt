@@ -4,3 +4,8 @@ requests
 pillow
 aiohttp
 pandas
+aiohttp
+discord.py
+pillow
+python-dotenv
+requests
