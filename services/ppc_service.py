@@ -28,16 +28,24 @@ class PpcService:
     
     def get_boss_stat(self, name):
         data = self.read_data(self.boss_stat_url)
-        boss_data = data[data["slug"] == name.lower()]
+        target = name.strip().lower()
+        if "slug" not in data.columns:
+            return None
+
+        boss_data = data[data["slug"].astype(str).str.strip().str.lower() == target]
+
+        if boss_data.empty:
+            return None
+
         row = boss_data.iloc[0]
         return {
-            "name": row["boss"],
-            "knight": row["knight"],
-            "chaos": row["chaos"],
-            "hell": row["hell"],
-            "start_time": row["start_time"],
-            "weakness": row["weakness"],
-            "img_url": row["img_url"]
+            "name": row.get("boss"),
+            "knight": row.get("knight"),
+            "chaos": row.get("chaos"),
+            "hell": row.get("hell"),
+            "start_time": row.get("start_time"),
+            "weakness": row.get("weakness"),
+            "img_url": row.get("img_url"),
         }
     
     def get_boss_list(self):
