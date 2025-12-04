@@ -1,79 +1,79 @@
-name: Deploy Agus Bot to GCP VM (appleboy SSH)
+# name: Deploy Agus Bot to GCP VM (appleboy SSH)
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-jobs:
-  deploy:
-    name: Deploy to VM via appleboy/ssh-action
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
+# jobs:
+#   deploy:
+#     name: Deploy to VM via appleboy/ssh-action
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repo
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 1
 
-      - name: Deploy via SSH (appleboy)
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          port: ${{ secrets.SERVER_PORT || '22' }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # password: ${{ secrets.SERVER_PASSWORD }}   # jika mau pakai password (tidak direkomendasikan)
-          script: |
-            set -eux
+#       - name: Deploy via SSH (appleboy)
+#         uses: appleboy/ssh-action@v0.1.6
+#         with:
+#           host: ${{ secrets.SERVER_HOST }}
+#           username: ${{ secrets.SERVER_USER }}
+#           port: ${{ secrets.SERVER_PORT || '22' }}
+#           key: ${{ secrets.SSH_PRIVATE_KEY }}
+#           # password: ${{ secrets.SERVER_PASSWORD }}   # jika mau pakai password (tidak direkomendasikan)
+#           script: |
+#             set -eux
 
-            TARGET_DIR="/home/${{ secrets.SERVER_USER }}/agus"
-            REPO="https://github.com/gideonladiyo/agus.git"
+#             TARGET_DIR="/home/${{ secrets.SERVER_USER }}/agus"
+#             REPO="https://github.com/gideonladiyo/agus.git"
 
-            echo "✅ Ensure target dir exists: ${TARGET_DIR}"
-            if [ ! -d "${TARGET_DIR}" ]; then
-              mkdir -p "${TARGET_DIR}"
-              chown ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} "${TARGET_DIR}" || true
-            fi
+#             echo "✅ Ensure target dir exists: ${TARGET_DIR}"
+#             if [ ! -d "${TARGET_DIR}" ]; then
+#               mkdir -p "${TARGET_DIR}"
+#               chown ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} "${TARGET_DIR}" || true
+#             fi
 
-            cd "${TARGET_DIR}"
+#             cd "${TARGET_DIR}"
 
-            # Clone repo if missing, otherwise update (hard-reset to origin/main)
-            if [ ! -d ".git" ]; then
-              echo "🔄 Cloning repository..."
-              git clone "${REPO}" .
-            else
-              echo "📥 Fetching and resetting to origin/main"
-              git fetch --all
-              git reset --hard origin/main
-            fi
+#             # Clone repo if missing, otherwise update (hard-reset to origin/main)
+#             if [ ! -d ".git" ]; then
+#               echo "🔄 Cloning repository..."
+#               git clone "${REPO}" .
+#             else
+#               echo "📥 Fetching and resetting to origin/main"
+#               git fetch --all
+#               git reset --hard origin/main
+#             fi
 
-            echo "🔑 Writing .env from secret (secure)"
-            # Write .env securely (expand DISCORD_TOKEN from environment)
-            echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
-            chmod 600 .env
-            echo ".env created"
+#             echo "🔑 Writing .env from secret (secure)"
+#             # Write .env securely (expand DISCORD_TOKEN from environment)
+#             echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
+#             chmod 600 .env
+#             echo ".env created"
 
-            echo "📥 Set safe.directory (git) to avoid CI git issues"
-            git config --global --add safe.directory "${TARGET_DIR}" || true
+#             echo "📥 Set safe.directory (git) to avoid CI git issues"
+#             git config --global --add safe.directory "${TARGET_DIR}" || true
 
-            echo "🐳 Stop & remove existing container if exists"
-            if sudo docker ps -q --filter "name=agus-bot" | grep -q .; then
-              sudo docker stop agus-bot || true
-              sudo docker rm agus-bot || true
-            fi
+#             echo "🐳 Stop & remove existing container if exists"
+#             if sudo docker ps -q --filter "name=agus-bot" | grep -q .; then
+#               sudo docker stop agus-bot || true
+#               sudo docker rm agus-bot || true
+#             fi
 
-            echo "🐳 Build Docker image"
-            sudo docker build -t agus-bot:latest .
+#             echo "🐳 Build Docker image"
+#             sudo docker build -t agus-bot:latest .
 
-            echo "🐳 Run container with restart policy"
-            sudo docker run -d \
-              --name agus-bot \
-              --env-file "${TARGET_DIR}/.env" \
-              -v "${TARGET_DIR}/data:/app/data" \
-              --restart unless-stopped \
-              agus-bot:latest || (sudo docker logs agus-bot || true)
+#             echo "🐳 Run container with restart policy"
+#             sudo docker run -d \
+#               --name agus-bot \
+#               --env-file "${TARGET_DIR}/.env" \
+#               -v "${TARGET_DIR}/data:/app/data" \
+#               --restart unless-stopped \
+#               agus-bot:latest || (sudo docker logs agus-bot || true)
 
-            echo "🧹 Prune dangling images"
-            sudo docker image prune -f || true
+#             echo "🧹 Prune dangling images"
+#             sudo docker image prune -f || true
 
-            echo "🚀 Deployment finished"
+#             echo "🚀 Deployment finished"
