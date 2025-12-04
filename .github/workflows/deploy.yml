@@ -1,84 +1,72 @@
-# name: CI/CD Pipeline Agus Bot
+name: Deploy Agus Bot to GCP VM
 
-# on:
-#   push:
-#     branches:
-#       - main
+on:
+  push:
+    branches:
+      - main
 
-# jobs:
-#   deploy-bot:
-#     name: Deploy to Production
-#     runs-on: ubuntu-latest
+jobs:
+  deploy:
+    name: Deploy to VM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-#     steps:
-#       - name: Checkout Repository
-#         uses: actions/checkout@v4
-      
-#       - name: Deploy via SSH
-#         uses: appleboy/ssh-action@v1
-#         with:
-#           host: ${{ secrets.SERVER_HOST }}
-#           username: ${{ secrets.SERVER_USER }}
-#           password: ${{ secrets.SERVER_PASSWORD }}
-#           script: |
-#             echo "✅ Memastikan direktori proyek tersedia"
-#             if [ ! -d "/home/gideonladiyo/PaceSorong_DiscordBot" ]; then
-#                 echo "📁 Direktori belum ada, membuat direktori..."
-#                 mkdir -p "/home/gideonladiyo/agus"
-#             fi
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-#             cd /home/gideonladiyo/agus
+      - name: Ensure target dir exists & sync repo via rsync
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+        run: |
+          TARGET_DIR="/home/${SERVER_USER}/agus"
+          # create dir on remote if not exists
+          ssh -o StrictHostKeyChecking=no -p ${SERVER_PORT:-22} ${SERVER_USER}@${SERVER_HOST} "mkdir -p ${TARGET_DIR}"
+          # sync repo files to remote (exclude .git)
+          rsync -avz --delete --exclude '.git' -e "ssh -p ${SERVER_PORT:-22}" ./ ${SERVER_USER}@${SERVER_HOST}:${TARGET_DIR}/
 
-#             if [ ! -d ".git" ]; then
-#                 echo "🔄 Folder belum berisi repo Git, melakukan clone..."
-#                 git clone https://github.com/gideonladiyo/agus.git .
-#             fi
+      - name: Create .env on remote (from secrets)
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          # tambahkan secret lain jika perlu, mis: DB_URL, OTHER_KEY
+        run: |
+          TARGET_DIR="/home/${SERVER_USER}/agus"
+          # create .env remotely safely
+          ssh -o StrictHostKeyChecking=no -p ${SERVER_PORT:-22} ${SERVER_USER}@${SERVER_HOST} << EOF
+            TARGET_DIR="/home/${SERVER_USER}/agus"
+            echo "DISCORD_TOKEN=${DISCORD_TOKEN}" > \$TARGET_DIR/.env
+            chmod 600 \$TARGET_DIR/.env
+          EOF
 
-#             echo "🔑 Membuat file .env dari secret"
-#             echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
-
-#             echo "📥 Menandai folder git sebagai aman"
-#             git config --global --add safe.directory /home/gideonladiyo/agus
-
-#             echo "📥 Pulling latest changes..."
-#             git pull origin main
-
-#             echo "🐳 Mengecek apakah container agus-bot sedang berjalan"
-#             if [ "$(sudo docker ps -aq -f name=agus-bot)" ]; then
-#                 echo "🛑 Menghentikan dan menghapus container lama..."
-#                 sudo docker stop agus-bot
-#                 sudo docker rm agus-bot
-#             fi
-
-#             echo "🐳 Membuild dan menjalankan kontainer Docker"
-#             sudo docker build -t agus-bot .
-#             sudo docker run -d \
-#               --name agus-bot \
-#               --env-file .env \
-#               -v /home/gideonladiyo/agus/data:/app/data \
-#               agus-bot
-
-#             echo "🚀 Bot berhasil dideploy"
-
-# ==================== railway di bawah ==================
-
-# name: Deploy to Railway
-
-# on:
-#   push:
-#     branches:
-#       - main
-
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-
-#       - name: Deploy to Railway (via bervProject Action) 🚀
-#         uses: bervProject/railway-deploy@main
-#         env:
-#           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-#         with:
-#           service: "agus" 
+      - name: Build image & restart container on remote
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+        run: |
+          TARGET_DIR="/home/${SERVER_USER}/agus"
+          ssh -o StrictHostKeyChecking=no -p ${SERVER_PORT:-22} ${SERVER_USER}@${SERVER_HOST} bash -lc "
+            cd ${TARGET_DIR} || exit 1
+            # stop container if running
+            if docker ps -q --filter name=agus-bot | grep -q .; then
+              docker stop agus-bot || true
+              docker rm agus-bot || true
+            fi
+            # build image
+            docker build -t agus-bot:latest .
+            # run with restart policy
+            docker run -d --name agus-bot --env-file .env -v ${TARGET_DIR}/data:/app/data --restart unless-stopped agus-bot:latest
+            # prune old images (optional)
+            docker image prune -f
+            echo 'DEPLOY_DONE'
+          "
