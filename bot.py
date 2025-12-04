@@ -20,7 +20,7 @@ from services.warzone_service import warzone_service
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 # Optional: channel to receive log summaries (ID as int)
-LOG_CHANNEL_ID = os.getenv("LOG_CHANNEL_ID")  # example: "123456789012345678"
+LOG_CHANNEL_ID = os.getenv("1446026484824412281")  # example: "123456789012345678"
 # How often (seconds) to allow sending log messages to the log channel
 LOG_SEND_COOLDOWN_SECONDS = int(os.getenv("LOG_SEND_COOLDOWN_SECONDS") or 10)
 
