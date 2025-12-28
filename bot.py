@@ -8,11 +8,14 @@ from utils import (
     server_map,
     wz_embed,
     error_message,
-    ppc_boss_stat_embed
+    ppc_boss_stat_embed,
+    add_chanel_id,
+    delete_channel_id
 )
 from discord import Embed
 from services.ppc_service import ppc_service
 from services.warzone_service import warzone_service
+from services.twitter_webhook import twitter_task
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -33,6 +36,7 @@ async def send_log_simple(message: str):
 @bot.event
 async def on_ready():
     print(f"✅ Bot {bot.user} sudah online!")
+    await twitter_task(bot)
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -283,5 +287,19 @@ async def boss(ctx, name):
                     return
         except:
             await ctx.send(error_message())
+
+@bot.command()
+async def add_channel_id(ctx, id, role_id):
+    if await add_chanel_id(id, role_id):
+        await ctx.send("Successfully added channel id!")
+    else:
+        await ctx.send("Failed to add channel id!")
+
+@bot.command()
+async def delete_channel_id(ctx, id):
+    if await delete_channel_id(id):
+        await ctx.send("Successfully delete channel id!")
+    else:
+        await ctx.send("Failed to delete channel id!")
 
 bot.run(TOKEN)

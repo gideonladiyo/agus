@@ -4,6 +4,7 @@ import aiohttp
 import asyncio
 from discord import Embed
 import discord
+import json
 
 
 def ppc_type_parse(type: str):
@@ -88,3 +89,45 @@ async def server_permission(ctx):
         return False
     else:
         return True
+
+
+# =============== Read File =======================
+FILE_PATH = "services/announcement_channel_ids.json"
+async def read_channel_ids():
+    with open(FILE_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data
+
+async def add_chanel_id(id, role_id):
+    with open(FILE_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    new_map = {
+        "id": id,
+        "role_id": role_id
+    }
+    if id not in data:
+        data.append(id)
+
+        with open(FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+
+        return True
+
+    return False
+
+
+async def delete_channel_id(channel_id):
+    with open(FILE_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    original_length = len(data)
+
+    data = [item for item in data if item["id"] != channel_id]
+
+    if len(data) < original_length:
+        with open(FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+
+        return True
+
+    return False
