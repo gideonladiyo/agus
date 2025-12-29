@@ -93,6 +93,7 @@ async def server_permission(ctx):
 
 # =============== Read File =======================
 FILE_PATH = "services/announcement_channel_ids.json"
+FILE_PATH_DUMMY = "services/announcement_test.json"
 async def read_channel_ids():
     with open(FILE_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -106,7 +107,7 @@ async def add_chanel_id(id, role_id):
         "role_id": role_id
     }
     if id not in data:
-        data.append(id)
+        data.append(new_map)
 
         with open(FILE_PATH, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
@@ -131,3 +132,13 @@ async def delete_channel_id(channel_id):
         return True
 
     return False
+
+
+# ==================== LOGGER =====================
+LOG_CHANNEL_ID = 1446026484824412281
+async def send_log_simple(bot, message: str):
+    channel = bot.get_channel(LOG_CHANNEL_ID)
+    if channel:
+        await channel.send(message)
+    else:
+        print(f"[LOGGER] Channel {LOG_CHANNEL_ID} tidak ditemukan di cache.")

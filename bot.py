@@ -10,7 +10,8 @@ from utils import (
     error_message,
     ppc_boss_stat_embed,
     add_chanel_id,
-    delete_channel_id
+    delete_channel_id,
+    send_log_simple
 )
 from discord import Embed
 from services.ppc_service import ppc_service
@@ -26,17 +27,10 @@ bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
 LOG_CHANNEL_ID = 1446026484824412281
 
-async def send_log_simple(message: str):
-    channel = bot.get_channel(LOG_CHANNEL_ID)
-    if channel:
-        await channel.send(message)
-    else:
-        print(f"[LOGGER] Channel {LOG_CHANNEL_ID} tidak ditemukan di cache.")
-
 @bot.event
 async def on_ready():
     print(f"✅ Bot {bot.user} sudah online!")
-    await twitter_task(bot)
+    twitter_task.start(bot)
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -50,7 +44,7 @@ async def on_command_error(ctx, error):
 @bot.command()
 async def help(ctx):
     await server_permission(ctx)
-    await send_log_simple(f"[CMD] {ctx.author} executing: {ctx.message.content}")
+    await send_log_simple(bot,f"[CMD] {ctx.author} executing: {ctx.message.content}")
     embed = Embed(
         title="**Help**", description="List of commands:", color=discord.Color.red()
     )
@@ -110,7 +104,7 @@ async def help(ctx):
 @bot.command()
 async def ppc(ctx, server, type):
     if await server_permission(ctx):
-        await send_log_simple(f"[CMD] {ctx.author} executing: {ctx.message.content}")
+        await send_log_simple(bot, f"[CMD] {ctx.author} executing: {ctx.message.content}")
         try:
             bosses = ppc_service.get_current_ppc_bosses(server_map(server), type)
 
@@ -145,7 +139,7 @@ async def predppc(ctx, type):
 @bot.command()
 async def wz(ctx, server):
     if await server_permission(ctx):
-        await send_log_simple(f"[CMD] {ctx.author} executing: {ctx.message.content}")
+        await send_log_simple(bot, f"[CMD] {ctx.author} executing: {ctx.message.content}")
         try:
             current_wz = warzone_service.get_wz_map(server)
             print(current_wz)
@@ -172,7 +166,7 @@ async def predwz(ctx):
 @bot.command()
 async def ulttotal(ctx, knight: int, chaos: int, hell: int):
     if await server_permission(ctx):
-        await send_log_simple(f"[CMD] {ctx.author} executing: {ctx.message.content}")
+        await send_log_simple(bot, f"[CMD] {ctx.author} executing: {ctx.message.content}")
         try:
             if knight > 60 or chaos > 60 or hell > 60:
                 await ctx.send("Timer must >60s")
@@ -192,7 +186,7 @@ async def ulttotal(ctx, knight: int, chaos: int, hell: int):
 @bot.command()
 async def ult(ctx, difficulty, time: int):
     if await server_permission(ctx):
-        await send_log_simple(f"[CMD] {ctx.author} executing: {ctx.message.content}")
+        await send_log_simple(bot, f"[CMD] {ctx.author} executing: {ctx.message.content}")
         try:
             if time > 60:
                 await ctx.send("Timer must >60s")
@@ -213,7 +207,7 @@ async def ult(ctx, difficulty, time: int):
 @bot.command()
 async def advtotal(ctx, knight: int, chaos: int, hell: int):
     if await server_permission(ctx):
-        await send_log_simple(f"[CMD] {ctx.author} executing: {ctx.message.content}")
+        await send_log_simple(bot, f"[CMD] {ctx.author} executing: {ctx.message.content}")
         try:
             if knight > 60 or chaos > 60 or hell > 60:
                 await ctx.send("Timer must >60s")
@@ -235,7 +229,7 @@ async def advtotal(ctx, knight: int, chaos: int, hell: int):
 @bot.command()
 async def adv(ctx, difficulty, time: int):
     if await server_permission(ctx):
-        await send_log_simple(f"[CMD] {ctx.author} executing: {ctx.message.content}")
+        await send_log_simple(bot, f"[CMD] {ctx.author} executing: {ctx.message.content}")
         try:
             if time > 60:
                 await ctx.send("Timer must >60s")
@@ -255,7 +249,7 @@ async def adv(ctx, difficulty, time: int):
 @bot.command()
 async def boss(ctx, name):
     if await server_permission(ctx):
-        await send_log_simple(f"[CMD] {ctx.author} executing: {ctx.message.content}")
+        await send_log_simple(bot, f"[CMD] {ctx.author} executing: {ctx.message.content}")
         try:
             if name == "list":
                 boss_list = ppc_service.get_boss_list()
