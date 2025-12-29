@@ -30,7 +30,7 @@ LOG_CHANNEL_ID = 1446026484824412281
 @bot.event
 async def on_ready():
     print(f"✅ Bot {bot.user} sudah online!")
-    twitter_task.start(bot)
+    # twitter_task.start(bot)
 
 @bot.event
 async def on_command_error(ctx, error):
