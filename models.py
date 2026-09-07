@@ -24,7 +24,7 @@ class PpcModel:
     def __init__(self, server, activity, start, end, bosses):
         self.server = server
         self.activity = activity
-        self.start = (start,)
+        self.start = start
         self.end = end
         self.bosses = bosses
 
@@ -146,3 +146,8 @@ class WarzoneWeek:
             "activity": self.activity,
             "area": [a.to_json() for a in self.area],
         }
+
+# ============= MEMORIES =======================
+class Memories:
+    def __init__(self, ):
+        pass

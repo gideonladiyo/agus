@@ -5,6 +5,7 @@ import asyncio
 from discord import Embed
 import discord
 import json
+from config import baseConfig
 
 
 def ppc_type_parse(type: str):
@@ -77,6 +78,39 @@ def ppc_boss_stat_embed(data: dict) -> Embed:
     return embed
 
 
+def memory_embed(data: dict) -> Embed:
+    name = data.get("name", "Unknown Memory")
+    quality = data.get("quality")
+    title_prefix = f"{quality}★ Memory" if quality else "Memory"
+
+    embed = Embed(
+        title=f"{title_prefix} **{name}**",
+        color=discord.Color.blue()
+    )
+
+    if data.get("description"):
+        embed.description = f"*{data['description']}*"
+
+    icon = data.get("icon", {})
+    if isinstance(icon, dict):
+        if icon.get("big"):
+            embed.set_thumbnail(url=f"{baseConfig.baseImgUrl}{icon['big']}.webp")
+        elif icon.get("normal"):
+            embed.set_thumbnail(url=f"{baseConfig.baseImgUrl}{icon['normal']}.webp")
+
+    skills = data.get("skills", [])
+    if skills:
+        for skill in skills:
+            level = skill.get("level")
+            desc = skill.get("description", "No description")
+            field_name = f"{level}-Piece Set Effect" if level else "Skill Effect"
+            embed.add_field(name=field_name, value=desc, inline=False)
+    else:
+        embed.add_field(name="Skills", value="No skill data available", inline=False)
+    return embed
+
+
+
 # ============== ERROR COMMAND ================
 def error_message():
     return f"There is an error. Please check your command or check `!help` for list commands."
@@ -132,6 +166,9 @@ async def delete_channel_id(channel_id):
         return True
 
     return False
+
+def compare_output(runs):
+    return "\n".join([f"{k}/{c}/{h} → {s}" for k, c, h, s in runs])
 
 
 # ==================== LOGGER =====================

@@ -9,14 +9,16 @@ from utils import (
     wz_embed,
     error_message,
     ppc_boss_stat_embed,
+    memory_embed,
     add_chanel_id,
     delete_channel_id,
-    send_log_simple
+    send_log_simple,
+    compare_output,
 )
 from discord import Embed
 from services.ppc_service import ppc_service
 from services.warzone_service import warzone_service
-from services.twitter_webhook import twitter_task
+from services.memories_service import memories_service
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -96,6 +98,11 @@ async def help(ctx):
     embed.add_field(
         name="!boss list — Ex: `!boss list`",
         value="Show list of available PPC bosses and their slugs.",
+        inline=False,
+    )
+    embed.add_field(
+        name="!get_memory (slug) — Ex: `!get_memory darwin` (alias: `!memory`)",
+        value="Shows memory details, 2-Piece and 4-Piece skill effects.",
         inline=False,
     )
 
@@ -203,6 +210,58 @@ async def ult(ctx, difficulty, time: int):
         except:
             await ctx.send(error_message())
 
+@bot.command()
+async def comparetotal(ctx, *args):
+    try:
+        args = list(args)
+
+        if "vs" not in args:
+            await ctx.send("Format: !comparetotal <runs> vs <runs>")
+
+        split = args.index("vs")
+        left = args[:split]
+        right = args[split+1:]
+
+        if len(left) % 3 != 0 or len(right) % 3 != 0:
+            await ctx.send("Each run must be 3 numbers (knight chaos hell)")
+            return
+
+        left_runs, left_total = ppc_service.parse_runs(left)
+        right_runs, right_total = ppc_service.parse_runs(right)
+
+        diff = left_total - right_total
+
+        embed = Embed(
+            title="Score comparison",
+            color=discord.Color.blue()
+        )
+
+        embed.add_field(
+            name="LEFT",
+            value=f"{compare_output(left_runs)}\n**Total: {left_total}**"
+        )
+
+        embed.add_field(
+            name="RIGHT",
+            value=f"{compare_output(right_runs)}\n**Total: {right_total}**"
+        )
+
+        if diff > 0:
+            result = f"Left wins **+{abs(diff)}**"
+        elif diff < 0:
+            result = f"Right wins **+{abs(diff)}**"
+        else:
+            result = "Draw"
+
+        embed.add_field(
+            name="Result",
+            value=result
+        )
+
+        await ctx.send(embed=embed)
+    except:
+        await ctx.send("Invalid input format")
+
 
 @bot.command()
 async def advtotal(ctx, knight: int, chaos: int, hell: int):
@@ -280,6 +339,21 @@ async def boss(ctx, name):
                     await ctx.send(embed = embed)
                     return
         except:
+            await ctx.send(error_message())
+
+@bot.command()
+async def memory(ctx, *, slug: str):
+    if await server_permission(ctx):
+        await send_log_simple(bot, f"[CMD] {ctx.author} executing: {ctx.message.content}")
+        try:
+            memory = memories_service.getMemory(slug)
+            if not memory:
+                await ctx.send(f"Memory `{slug}` not found. Check spelling")
+                return
+            embed = memory_embed(memory)
+            await ctx.send(embed=embed)
+        except Exception as e:
+            print(f"Error in get_memory: {e}")
             await ctx.send(error_message())
 
 @bot.command()

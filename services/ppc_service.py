@@ -25,7 +25,15 @@ class PpcService:
     def read_data(self, url):
         data = pd.read_csv(url)
         return data
-    
+
+    def read_adv(self):
+        data = pd.read_csv("data/adv.csv")
+        return data
+
+    def read_ult(self):
+        data = pd.read_csv("data/ult.csv")
+        return data
+
     def get_boss_stat(self, name):
         data = self.read_data(self.boss_stat_url)
         target = name.strip().lower()
@@ -47,7 +55,7 @@ class PpcService:
             "weakness": row.get("weakness"),
             "img_url": row.get("img_url"),
         }
-    
+
     def get_boss_list(self):
         data = self.read_data(self.boss_stat_url)
         names = data["boss"].tolist()
@@ -60,9 +68,9 @@ class PpcService:
     # ============ PPC TIMER ============
     def get_score(self, time, stage, type):
         if type.lower() == "advanced":
-            data = self.read_data(self.adv_url)
+            data = self.read_adv()
         else:
-            data = self.read_data(self.ult_url)
+            data = self.read_ult()
         score = data.loc[data["kill_time"] == time, stage].iloc[0]
         return score
 
@@ -73,5 +81,19 @@ class PpcService:
         total_score = knight_score + chaos_score + hell_score
         return total_score
 
+    def parse_runs(self, side):
+        runs = []
+        total = 0
+
+        for i in range(0, len(side), 3):
+            k = int(side[i])
+            c = int(side[i+1])
+            h = int(side[i+2])
+
+            score = self.get_total_score(k, c, h, "ultimate")
+            runs.append((k, c, h, score))
+            total += score
+
+        return runs, total
 
 ppc_service = PpcService()

@@ -4,8 +4,8 @@ requests
 pillow
 aiohttp
 pandas
-aiohttp
-discord.py
-pillow
-python-dotenv
-requests
+pypresence
+spotipy
+pywin32
+psutil
+winsdk
