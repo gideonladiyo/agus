@@ -9,3 +9,4 @@ spotipy
 pywin32; sys_platform == "win32"
 psutil
 winsdk; sys_platform == "win32"
+pymupdf

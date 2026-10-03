@@ -113,16 +113,28 @@ def memory_embed(data: dict) -> Embed:
 
 # ============== ERROR COMMAND ================
 def error_message():
-    return f"There is an error. Please check your command or check `!help` for list commands."
+    return f"Ada yang gagal diproses. Coba cek lagi perintahnya atau buka `{baseConfig.commandPrefix}help`."
+
+
+ALLOWED_SERVER_IDS = frozenset(
+    {
+        1273463276847632405,
+        1010450041514754109,
+        648563331162177536,
+        1238540250494533692,
+    }
+)
 
 
 async def server_permission(ctx):
-    server_ids = [1273463276847632405, 1010450041514754109, 648563331162177536, 1238540250494533692]
-    if ctx.guild.id not in server_ids:
-        await ctx.send("These server doesn't have permission to use Agus")
+    return bool(ctx.guild and ctx.guild.id in ALLOWED_SERVER_IDS)
+
+
+async def admin_permission(ctx):
+    if ctx.author.id not in baseConfig.adminIds:
+        await ctx.send("Perintah ini khusus admin Agus.")
         return False
-    else:
-        return True
+    return True
 
 
 # =============== Read File =======================
@@ -140,15 +152,13 @@ async def add_chanel_id(id, role_id):
         "id": id,
         "role_id": role_id
     }
-    if id not in data:
-        data.append(new_map)
+    if any(str(item.get("id")) == str(id) for item in data):
+        return False
 
-        with open(FILE_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-
-        return True
-
-    return False
+    data.append(new_map)
+    with open(FILE_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    return True
 
 
 async def delete_channel_id(channel_id):
@@ -157,7 +167,7 @@ async def delete_channel_id(channel_id):
 
     original_length = len(data)
 
-    data = [item for item in data if item["id"] != channel_id]
+    data = [item for item in data if str(item["id"]) != str(channel_id)]
 
     if len(data) < original_length:
         with open(FILE_PATH, "w", encoding="utf-8") as f:

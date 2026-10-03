@@ -50,6 +50,9 @@
 #             echo "🔑 Writing .env from secret (secure)"
 #             # Write .env securely (expand DISCORD_TOKEN from environment)
 #             echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
+#             echo "APP_ENV=production" >> .env
+#             echo "HUAXU_BASE_URL=${{ secrets.HUAXU_BASE_URL }}" >> .env
+#             echo "HUAXU_API_KEY=${{ secrets.HUAXU_API_KEY }}" >> .env
 #             chmod 600 .env
 #             echo ".env created"
 

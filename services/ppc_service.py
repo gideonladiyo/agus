@@ -96,4 +96,12 @@ class PpcService:
 
         return runs, total
 
+    def ib_timer(self, time, buff):
+        base_score = 334802 - (1196 * time) + 2 * (time*time)
+        b = 1.155
+        if buff == 2:
+            b = 1.25
+
+        return base_score * b
+
 ppc_service = PpcService()
