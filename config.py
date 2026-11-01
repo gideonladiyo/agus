@@ -22,8 +22,19 @@ class BaseConfig:
             "1peDlYCz_dPPtuGQJ6PpfB3wh8QLpWeDg8Vm7-zU6_gA",
         )
         self.teamSheetGid = os.getenv("TEAM_SHEET_GID", "0")
-        self.wzPredictChannelId = int(
-            os.getenv("WZ_PREDICT_CHANNEL_ID", "1238807704877793372")
+        raw_wz_channels = os.getenv(
+            "WZ_PREDICT_CHANNEL_ID",
+            os.getenv("WZ_PREDICT_CHANNEL_IDS", "1238807704877793372"),
+        )
+        self.wzPredictChannelIds = [
+            int(ch.strip())
+            for ch in raw_wz_channels.replace(";", ",").split(",")
+            if ch.strip().isdigit()
+        ]
+        self.wzPredictChannelId = (
+            self.wzPredictChannelIds[0]
+            if self.wzPredictChannelIds
+            else 1238807704877793372
         )
         self.wzPredictTimeWib = os.getenv("WZ_PREDICT_TIME_WIB", "04:00")
         self.wzPredictZonesPath = os.getenv(

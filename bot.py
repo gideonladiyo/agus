@@ -84,11 +84,12 @@ async def warzone_predict_task():
     if now_wib.weekday() != 0:
         return
 
-    channel_id = baseConfig.wzPredictChannelId
+    channel_ids = baseConfig.wzPredictChannelIds
+    if not channel_ids:
+        print("[WARN] warzone_predict_task: Tidak ada WZ_PREDICT_CHANNEL_ID yang valid.", flush=True)
+        return
+
     try:
-        channel = bot.get_channel(channel_id)
-        if channel is None:
-            channel = await bot.fetch_channel(channel_id)
         (
             text_msg,
             wz_img,
@@ -96,10 +97,8 @@ async def warzone_predict_task():
             sheet_data,
             _ppc_bosses,
         ) = await wz_sheet_service.generate_wz_ppc_prediction("current")
-        files = [discord.File(BytesIO(wz_img), filename="warzone.png")]
-        if ppc_img is not None:
-            files.append(discord.File(ppc_img, filename="ppc.png"))
-        await channel.send(content=text_msg, files=files)
+        ppc_bytes = ppc_img.getvalue() if ppc_img is not None else None
+
         if sheet_data.get("untranslated_zone_ids") or sheet_data.get(
             "untranslated_weathers"
         ):
@@ -108,10 +107,29 @@ async def warzone_predict_task():
                 f"[WARN] Warzone Predict untranslated zones={sheet_data.get('untranslated_zone_ids')} "
                 f"weathers={sheet_data.get('untranslated_weathers')}",
             )
-        await send_log_simple(
-            bot,
-            f"[LOGS] Sent Warzone & PPC Predict (activity={sheet_data.get('activity')}) to channel {channel_id}",
-        )
+
+        for channel_id in channel_ids:
+            try:
+                channel = bot.get_channel(channel_id)
+                if channel is None:
+                    channel = await bot.fetch_channel(channel_id)
+                files = [discord.File(BytesIO(wz_img), filename="warzone.png")]
+                if ppc_bytes is not None:
+                    files.append(discord.File(BytesIO(ppc_bytes), filename="ppc.png"))
+                await channel.send(content=text_msg, files=files)
+                await send_log_simple(
+                    bot,
+                    f"[LOGS] Sent Warzone & PPC Predict (activity={sheet_data.get('activity')}) to channel {channel_id}",
+                )
+            except Exception as ch_err:
+                print(
+                    f"[ERROR] warzone_predict_task gagal kirim ke channel {channel_id}: {ch_err}",
+                    flush=True,
+                )
+                await send_log_simple(
+                    bot,
+                    f"[ERROR] warzone_predict_task gagal kirim ke channel {channel_id}: {ch_err}",
+                )
     except Exception as e:
         print(f"[ERROR] warzone_predict_task: {e}", flush=True)
         traceback.print_exc()
@@ -128,7 +146,7 @@ async def on_ready():
     if not warzone_predict_task.is_running():
         warzone_predict_task.start()
         print(
-            f"[SCHEDULER] Warzone & PPC Predict scheduled every Monday at {baseConfig.wzPredictTimeWib} WIB -> channel {baseConfig.wzPredictChannelId}",
+            f"[SCHEDULER] Warzone & PPC Predict scheduled every Monday at {baseConfig.wzPredictTimeWib} WIB -> channels {baseConfig.wzPredictChannelIds}",
             flush=True,
         )
     # twitter_task.start(bot)
