@@ -1,0 +1,32 @@
+{
+  "by_buff_id": {
+    "4001": "https://i.imgur.com/oZndftb.png",
+    "4002": "https://i.imgur.com/oI4Hzmy.png",
+    "4003": "https://i.imgur.com/EpAS7MM.png",
+    "4004": "https://i.imgur.com/laLaiH4.png",
+    "4005": "https://i.imgur.com/yxvQiJK.png",
+    "4088": "https://i.imgur.com/y5xlPe2.png",
+    "4114": "https://i.imgur.com/zHvk2Lo.png",
+    "4115": "https://i.imgur.com/8tbEI5V.png",
+    "4132": "https://i.imgur.com/FV9u72T.png",
+    "4143": "https://i.imgur.com/LdXeuYs.png",
+    "4161": "https://i.imgur.com/ZwAUr4Y.png",
+    "4175": "https://i.imgur.com/AwP5E4y.png"
+  },
+  "by_name": {
+    "Machine Factory": "https://i.imgur.com/oZndftb.png",
+    "Cycle of Fire": "https://i.imgur.com/EpAS7MM.png",
+    "Loop of Fire": "https://i.imgur.com/EpAS7MM.png",
+    "Laser Alloy": "https://i.imgur.com/laLaiH4.png",
+    "Shadow Forest": "https://i.imgur.com/yxvQiJK.png",
+    "Crimson Frostland": "https://i.imgur.com/oI4Hzmy.png",
+    "Nihil Floating Platform": "https://i.imgur.com/FV9u72T.png",
+    "Molten Chasm": "https://i.imgur.com/ZwAUr4Y.png",
+    "Shattered Peak": "https://i.imgur.com/8tbEI5V.png",
+    "Shadowed Rift": "https://i.imgur.com/AwP5E4y.png",
+    "Diffraction Void": "https://i.imgur.com/y5xlPe2.png",
+    "Gelid Tower": "https://i.imgur.com/LdXeuYs.png",
+    "Vortex Barrier": "https://i.imgur.com/zHvk2Lo.png",
+    "Vortex Barier": "https://i.imgur.com/zHvk2Lo.png"
+  }
+}

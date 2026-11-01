@@ -1,8 +1,17 @@
 import os
+import sys
+import traceback
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 import asyncio
 from io import BytesIO
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord import app_commands
 from dotenv import load_dotenv
 from utils import (
@@ -10,6 +19,7 @@ from utils import (
     merge_images_horizontal,
     server_map,
     wz_embed,
+    wz_predict_embed,
     error_message,
     ppc_boss_stat_embed,
     memory_embed,
@@ -21,7 +31,10 @@ from utils import (
 )
 from discord import Embed
 from services.ppc_service import ppc_service
-from services.warzone_service import warzone_service
+from datetime import datetime, time as dt_time
+import requests
+from services.warzone_service import warzone_service, WIB_TZ
+from services.wz_sheet_service import WzSheetWriteError, wz_sheet_service
 from services.memories_service import memories_service
 from services.team_service import TeamNotFound, team_service
 from config import baseConfig
@@ -37,7 +50,8 @@ COMMAND_PREFIX = baseConfig.commandPrefix
 
 class AgusBot(commands.Bot):
     async def setup_hook(self):
-        await self.tree.sync()
+        synced = await self.tree.sync()
+        print(f"[STARTUP] Synced {len(synced)} global slash commands.", flush=True)
 
 
 bot = AgusBot(command_prefix=COMMAND_PREFIX, intents=intents, help_command=None)
@@ -56,18 +70,75 @@ def command_invocation(ctx):
     return ctx.message.content
 
 
+def _parse_wib_time(time_str: str) -> dt_time:
+    parts = time_str.strip().split(":")
+    hour = int(parts[0])
+    minute = int(parts[1]) if len(parts) > 1 else 0
+    return dt_time(hour=hour, minute=minute, tzinfo=WIB_TZ)
+
+
+@tasks.loop(time=_parse_wib_time(baseConfig.wzPredictTimeWib))
+async def warzone_predict_task():
+    now_wib = datetime.now(WIB_TZ)
+    # Hanya jalankan setiap hari Senin (weekday 0 = Monday)
+    if now_wib.weekday() != 0:
+        return
+
+    channel_id = baseConfig.wzPredictChannelId
+    try:
+        channel = bot.get_channel(channel_id)
+        if channel is None:
+            channel = await bot.fetch_channel(channel_id)
+        (
+            text_msg,
+            wz_img,
+            ppc_img,
+            sheet_data,
+            _ppc_bosses,
+        ) = await wz_sheet_service.generate_wz_ppc_prediction("current")
+        files = [discord.File(BytesIO(wz_img), filename="warzone.png")]
+        if ppc_img is not None:
+            files.append(discord.File(ppc_img, filename="ppc.png"))
+        await channel.send(content=text_msg, files=files)
+        if sheet_data.get("untranslated_zone_ids") or sheet_data.get(
+            "untranslated_weathers"
+        ):
+            await send_log_simple(
+                bot,
+                f"[WARN] Warzone Predict untranslated zones={sheet_data.get('untranslated_zone_ids')} "
+                f"weathers={sheet_data.get('untranslated_weathers')}",
+            )
+        await send_log_simple(
+            bot,
+            f"[LOGS] Sent Warzone & PPC Predict (activity={sheet_data.get('activity')}) to channel {channel_id}",
+        )
+    except Exception as e:
+        print(f"[ERROR] warzone_predict_task: {e}", flush=True)
+        traceback.print_exc()
+        await send_log_simple(bot, f"[ERROR] executing: warzone_predict_task {e}")
+
+
 async def defer_response(ctx):
     if ctx.interaction and not ctx.interaction.response.is_done():
         await ctx.defer()
 
 @bot.event
 async def on_ready():
-    print(f"✅ Bot {bot.user} sudah online!")
+    print(f"✅ Bot {bot.user} sudah online!", flush=True)
+    if not warzone_predict_task.is_running():
+        warzone_predict_task.start()
+        print(
+            f"[SCHEDULER] Warzone & PPC Predict scheduled every Monday at {baseConfig.wzPredictTimeWib} WIB -> channel {baseConfig.wzPredictChannelId}",
+            flush=True,
+        )
     # twitter_task.start(bot)
 
 @bot.event
 async def on_command_error(ctx, error):
-    if not await server_permission(ctx) or isinstance(error, commands.CheckFailure):
+    print(f"[CMD ERROR] {type(error).__name__}: {error}", flush=True)
+    if isinstance(error, commands.CheckFailure):
+        return
+    if not await server_permission(ctx):
         return
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send(error_message())
@@ -207,20 +278,74 @@ async def wz(ctx, server):
             await ctx.send(error_message())
 
 
-@bot.hybrid_command(with_app_command=False)
+@bot.hybrid_command(description="Show the Warzone & PPC prediction from CN server")
+@app_commands.guild_only()
 async def predwz(ctx):
+    if await server_permission(ctx):
+        await defer_response(ctx)
+        await send_log_simple(bot, f"[CMD] {ctx.author} executing: {command_invocation(ctx)}")
+        try:
+            (
+                text_msg,
+                wz_img,
+                ppc_img,
+                sheet_data,
+                _ppc_bosses,
+            ) = await wz_sheet_service.generate_wz_ppc_prediction("current")
+            files = [discord.File(BytesIO(wz_img), filename="warzone.png")]
+            if ppc_img is not None:
+                files.append(discord.File(ppc_img, filename="ppc.png"))
+            await ctx.send(content=text_msg, files=files)
+        except Exception as e:
+            print(f"Error in predwz: {e}", flush=True)
+            traceback.print_exc()
+            await ctx.send(error_message())
+
+
+@bot.hybrid_command(
+    description="Update Warzone sheet and send CN Warzone & PPC Prediction"
+)
+@app_commands.guild_only()
+async def wztest(ctx):
+    if not await server_permission(ctx):
+        return
+    await defer_response(ctx)
+    await send_log_simple(
+        bot, f"[CMD] {ctx.author} executing: {command_invocation(ctx)}"
+    )
+
     try:
-        await ctx.send(
-            embed=Embed(
-                title="**This command is deprecated**", color=discord.Color.red()
+        print("[WZTEST] Updating sheet and generating CN Warzone & PPC prediction...", flush=True)
+        (
+            text_msg,
+            wz_img,
+            ppc_img,
+            sheet_data,
+            _ppc_bosses,
+        ) = await wz_sheet_service.generate_wz_ppc_prediction("current")
+        act_num = sheet_data.get("activity", "current")
+        print(f"[WZTEST] Done rendering CN Warzone #{act_num} & PPC.", flush=True)
+
+        files = [discord.File(BytesIO(wz_img), filename="warzone.png")]
+        if ppc_img is not None:
+            files.append(discord.File(ppc_img, filename="ppc.png"))
+
+        await ctx.send(content=text_msg, files=files)
+
+        if sheet_data.get("untranslated_zone_ids") or sheet_data.get(
+            "untranslated_weathers"
+        ):
+            await send_log_simple(
+                bot,
+                f"[WARN] wztest #{act_num} untranslated zones={sheet_data.get('untranslated_zone_ids')} "
+                f"weathers={sheet_data.get('untranslated_weathers')}",
             )
-        )
-    except:
-        await ctx.send(
-            embed=Embed(
-                title="**This command is deprecated**", color=discord.Color.red()
-            )
-        )
+    except WzSheetWriteError as write_err:
+        await ctx.send(f"⚠️ {write_err}")
+    except Exception as error:
+        print(f"wztest error: {type(error).__name__}: {error}", flush=True)
+        traceback.print_exc()
+        await ctx.send(error_message())
 
 
 @bot.hybrid_command(description="Calculate the total Ultimate PPC score from three clear times")

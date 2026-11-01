@@ -1,12 +1,27 @@
+import json
+from pathlib import Path
 from models import PpcBoss, PpcModel
 from services.api_service import api_service
+from config import baseConfig
 import pandas as pd
+
 
 class PpcService:
     def __init__(self):
         self.ult_url = "https://docs.google.com/spreadsheets/d/1z_L4MEGv5q89OFkuN2RNI1gjajddD3_NG169_f0RNrA/gviz/tq?tqx=out:csv&sheet=ult"
         self.adv_url = "https://docs.google.com/spreadsheets/d/1z_L4MEGv5q89OFkuN2RNI1gjajddD3_NG169_f0RNrA/gviz/tq?tqx=out:csv&sheet=adv"
         self.boss_stat_url = "https://docs.google.com/spreadsheets/d/1z_L4MEGv5q89OFkuN2RNI1gjajddD3_NG169_f0RNrA/gviz/tq?tqx=out:csv&sheet=ppc_boss"
+        self.boss_map_path = Path(baseConfig.ppcBossMapPath)
+        self._boss_map = None
+
+    def _load_boss_map(self):
+        if self._boss_map is None:
+            if self.boss_map_path.exists():
+                with open(self.boss_map_path, "r", encoding="utf-8") as f:
+                    self._boss_map = json.load(f)
+            else:
+                self._boss_map = {"by_boss_id": {}, "by_monster_id": {}, "by_icon": {}}
+        return self._boss_map
 
     # ============ PPC WEEK ============
     def get_current_ppc(self, server, type):
@@ -15,6 +30,43 @@ class PpcService:
     def get_current_ppc_bosses(self, server, type):
         data = self.get_current_ppc(server, type)
         return [PpcBoss.parsing_json(boss).to_dict() for boss in data["data"]["ppc"]["bosses"]]
+
+    def get_cn_ppc_predict_bosses(self, type="ultimate") -> list[dict]:
+        """
+        Ambil current PPC dari server CN (default: ultimate -> /servers/cn/ppc/current/4),
+        dan terjemahkan nama boss ke Bahasa Inggris menggunakan data/ppc_boss_map.json.
+        """
+        data = self.get_current_ppc("cn", type)
+        bosses_raw = data.get("data", {}).get("ppc", {}).get("bosses", [])
+        boss_map = self._load_boss_map()
+        by_boss_id = boss_map.get("by_boss_id", {})
+        by_monster_id = boss_map.get("by_monster_id", {})
+        by_icon = boss_map.get("by_icon", {})
+
+        results = []
+        for b in bosses_raw:
+            bid = str(b.get("id", ""))
+            mid = str(b.get("monster_id", ""))
+            bicon = b.get("icon", "")
+            raw_name = (b.get("name") or "").strip()
+
+            en_name = (
+                by_boss_id.get(bid)
+                or by_monster_id.get(mid)
+                or by_icon.get(bicon)
+                or raw_name
+            )
+            results.append(
+                {
+                    "id": bid,
+                    "monster_id": mid,
+                    "name": en_name,
+                    "raw_name": raw_name,
+                    "icon": bicon,
+                    "imgUrl": f"{baseConfig.baseImgUrl}{bicon}.webp",
+                }
+            )
+        return results
 
     def get_current_ppc_item(self, server, type):
         data = self.get_current_ppc(server, type)

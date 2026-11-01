@@ -22,5 +22,33 @@ class BaseConfig:
             "1peDlYCz_dPPtuGQJ6PpfB3wh8QLpWeDg8Vm7-zU6_gA",
         )
         self.teamSheetGid = os.getenv("TEAM_SHEET_GID", "0")
+        self.wzPredictChannelId = int(
+            os.getenv("WZ_PREDICT_CHANNEL_ID", "1238807704877793372")
+        )
+        self.wzPredictTimeWib = os.getenv("WZ_PREDICT_TIME_WIB", "04:00")
+        self.wzPredictZonesPath = os.getenv(
+            "WZ_PREDICT_ZONES_PATH", "data/pgr_warzone_zones.json"
+        )
+        self.wzSheetId = os.getenv(
+            "WZ_SHEET_ID",
+            "1z_L4MEGv5q89OFkuN2RNI1gjajddD3_NG169_f0RNrA",
+        )
+        self.wzSheetGid = os.getenv("WZ_SHEET_GID", "501567643")
+        self.wzRenderArea = os.getenv("WZ_RENDER_AREA", "A1:O22")
+        self.wzLogoMapPath = os.getenv("WZ_LOGO_MAP_PATH", "data/wz_logo_map.json")
+        self.wzWeatherMapPath = os.getenv(
+            "WZ_WEATHER_MAP_PATH", "data/wz_weather_map.json"
+        )
+        self.wzElementMapPath = os.getenv(
+            "WZ_ELEMENT_MAP_PATH", "data/wz_element_map.json"
+        )
+        self.ppcBossMapPath = os.getenv(
+            "PPC_BOSS_MAP_PATH", "data/ppc_boss_map.json"
+        )
+        self.googleServiceAccountFile = os.getenv(
+            "GOOGLE_SERVICE_ACCOUNT_FILE", "credentials/gsheet-sa.json"
+        )
+        self.wzAppsScriptUrl = os.getenv("WZ_APPS_SCRIPT_URL", "")
+        self.wzRenderDelaySec = float(os.getenv("WZ_RENDER_DELAY_SEC", "2.5"))
 
 baseConfig = BaseConfig()

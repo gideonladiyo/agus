@@ -5,3 +5,5 @@ venv
 outputs/
 .vscode/
 .factory/
+credentials/
+*.sa.json

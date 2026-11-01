@@ -31,16 +31,32 @@ async def merge_images_horizontal(urls):
         images = await asyncio.gather(*tasks)
 
     images = [img for img in images if img]
+    if not images:
+        return None
 
-    widths, heights = zip(*(i.size for i in images))
-    total_width = sum(widths)
-    max_height = max(heights)
-
-    merged = Image.new("RGBA", (total_width, max_height))
-    x_offset = 0
+    trimmed_images = []
     for img in images:
-        merged.paste(img, (x_offset, 0))
-        x_offset += img.width
+        gray = img.convert("L")
+        w, h = img.size
+        last_y = h
+        while (
+            last_y > h // 2
+            and sum(gray.getpixel((x, last_y - 1)) for x in range(w)) / w < 6
+        ):
+            last_y -= 1
+        trimmed_images.append(img.crop((0, 0, w, last_y)))
+
+    target_w = max(img.width for img in trimmed_images)
+    target_h = min(img.height for img in trimmed_images)
+    normalized = [
+        img.resize((target_w, target_h), Image.Resampling.LANCZOS)
+        for img in trimmed_images
+    ]
+
+    total_width = target_w * len(normalized)
+    merged = Image.new("RGBA", (total_width, target_h))
+    for idx, img in enumerate(normalized):
+        merged.paste(img, (idx * target_w, 0))
 
     bio = BytesIO()
     merged.save(bio, format="PNG")
@@ -62,6 +78,24 @@ def wz_embed(title, json):
             name=wz_item["name"],
             value=text_content if text_content.strip() else "No data",
             inline=True,
+        )
+    return embed
+
+
+def wz_predict_embed(predict_data: dict) -> Embed:
+    embed = Embed(
+        title=f"Warzone Predict Cycle {predict_data['cycle_text']}",
+        color=discord.Color.red(),
+    )
+    for zone in predict_data.get("zones", []):
+        value_text = (
+            f"**Description:** {zone['description']}\n"
+            f"**Buff:** {zone['buff_text']}"
+        )
+        embed.add_field(
+            name=zone["name"],
+            value=value_text,
+            inline=False,
         )
     return embed
 
@@ -110,7 +144,6 @@ def memory_embed(data: dict) -> Embed:
     return embed
 
 
-
 # ============== ERROR COMMAND ================
 def error_message():
     return f"Ada yang gagal diproses. Coba cek lagi perintahnya atau buka `{baseConfig.commandPrefix}help`."
@@ -127,7 +160,13 @@ ALLOWED_SERVER_IDS = frozenset(
 
 
 async def server_permission(ctx):
-    return bool(ctx.guild and ctx.guild.id in ALLOWED_SERVER_IDS)
+    guild_id = ctx.guild.id if ctx.guild else None
+    if guild_id in ALLOWED_SERVER_IDS:
+        return True
+
+    command = getattr(ctx.command, "qualified_name", "unknown")
+    print(f"[ACCESS] Ignored {command} from guild_id={guild_id}", flush=True)
+    return False
 
 
 async def admin_permission(ctx):

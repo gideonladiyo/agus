@@ -93,7 +93,19 @@ class TeamService:
         self._render_area(area).save(output, format="PNG", optimize=True)
         return output.getvalue()
 
-    def _render_area(self, area):
+    def render_sheet_area(
+        self, area, spreadsheet_id=None, gid=None, padding=0
+    ) -> bytes:
+        output = io.BytesIO()
+        self._render_area(
+            area,
+            spreadsheet_id=spreadsheet_id,
+            gid=gid,
+            padding=padding,
+        ).save(output, format="PNG", optimize=True)
+        return output.getvalue()
+
+    def _render_area(self, area, spreadsheet_id=None, gid=None, padding=8):
         match = re.fullmatch(r"\$?([A-Z]+)\$?(\d+):\$?([A-Z]+)\$?(\d+)", area.upper())
         if not match:
             raise ValueError(f"Range tidak valid di kolom area: {area}")
@@ -104,16 +116,18 @@ class TeamService:
         if start_row < 1 or end_row < start_row or end_col < start_col:
             raise ValueError(f"Range tidak valid di kolom area: {area}")
 
+        target_sheet_id = spreadsheet_id or baseConfig.teamImageSpreadsheetId
+        target_gid = str(gid if gid is not None else baseConfig.teamSheetGid)
         params = {
             **self.export_options,
-            "gid": baseConfig.teamSheetGid,
+            "gid": target_gid,
             "range": area.upper(),
             "r1": str(start_row - 1),
             "c1": str(start_col - 1),
             "r2": str(end_row),
             "c2": str(end_col),
         }
-        url = f"https://docs.google.com/spreadsheets/d/{baseConfig.teamImageSpreadsheetId}/export"
+        url = f"https://docs.google.com/spreadsheets/d/{target_sheet_id}/export"
         response = requests.get(url, params=params, timeout=30)
         response.raise_for_status()
         if not response.content.startswith(b"%PDF"):
@@ -131,7 +145,6 @@ class TeamService:
         if bounds is None:
             raise ValueError(f"Tidak ada gambar pada range {area}")
 
-        padding = 8
         left, top, right, bottom = bounds
         return image.crop((
             max(0, left - padding),

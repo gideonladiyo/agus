@@ -32,6 +32,9 @@ class ApiService:
 
     def warzone_week(self, server, id):
         return self._get(f"{server}/warzone/{id}/16")
+
+    def warzone_current(self, server, id="current"):
+        return self._get(f"{server}/warzone/{id}")
     
     def get_memory(self, slug):
         return self._get(f"ap/memories/{slug}")

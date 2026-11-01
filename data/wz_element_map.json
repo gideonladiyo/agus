@@ -1,0 +1,52 @@
+{
+  "by_buff_id": {
+    "4001": "Physical",
+    "4002": "Ice",
+    "4003": "Fire",
+    "4004": "Lightning",
+    "4005": "Dark",
+    "4088": "Disrupt",
+    "4114": "Plasma",
+    "4115": "True Slash",
+    "4132": "Nihil",
+    "4143": "Glacio",
+    "4161": "Ignition",
+    "4175": "Darkflow"
+  },
+  "by_name": {
+    "Machine Factory": "Physical",
+    "Cycle of Fire": "Fire",
+    "Loop of Fire": "Fire",
+    "Laser Alloy": "Lightning",
+    "Shadow Forest": "Dark",
+    "Crimson Frostland": "Ice",
+    "Nihil Floating Platform": "Nihil",
+    "Molten Chasm": "Ignition",
+    "Shattered Peak": "True Slash",
+    "Shadowed Rift": "Darkflow",
+    "Diffraction Void": "Disrupt",
+    "Gelid Tower": "Glacio",
+    "Vortex Barrier": "Plasma",
+    "Vortex Barier": "Plasma"
+  },
+  "type_by_description": {
+    "Duo Challenge: Refresh 2 Elite enemies per wave": "Duo",
+    "Duo Challenge: Only 2 Elite enemies spawn per wave": "Duo",
+    "Desperate Fight: Refresh only 1 enemy per wave": "Boss",
+    "Desperate Fight: Only 1 enemy spawns per wave.": "Boss",
+    "Joint Operation: Refresh multiple Normal and Elite enemies": "Mob",
+    "Number Advantage: 3 or 6 normal enemies spawn in every wave.": "Mob",
+    "Crowd Battle: Refresh 3 or 6 Normal enemies per wave": "Mob"
+  },
+  "type_by_prefix": {
+    "duo challenge": "Duo",
+    "desperate fight": "Boss",
+    "joint operation": "Mob",
+    "number advantage": "Mob",
+    "crowd battle": "Mob",
+    "祸不单行": "Duo",
+    "背水一战": "Boss",
+    "合军聚众": "Mob",
+    "人海战术": "Mob"
+  }
+}
