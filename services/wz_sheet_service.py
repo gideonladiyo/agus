@@ -251,18 +251,23 @@ class WzSheetService:
             )
 
     @staticmethod
-    def build_prediction_text(sheet_data: dict, ppc_bosses: list[dict]) -> str:
+    def build_prediction_text(
+        sheet_data: dict, ppc_bosses: list[dict], role_id: int | str | None = None
+    ) -> str:
         cycle_text = sheet_data.get("cycle_text", "")
         zones = sheet_data.get("zones", [])
         wz_lines = "\n".join(f"- {z.get('summary_line', '')}" for z in zones)
         ppc_lines = "\n".join(f"- {b.get('name', '')}" for b in ppc_bosses)
-        return (
+        base_text = (
             f"# Warzone & PPC Prediction Cycle {cycle_text}\n"
             f"Warzone:\n"
             f"{wz_lines}\n\n"
             f"PPC:\n"
             f"{ppc_lines}"
         )
+        if role_id:
+            return f"{base_text}\n<@&{role_id}>"
+        return base_text
 
     async def generate_wz_ppc_prediction(
         self, activity_id="current", server=None, ppc_server=None

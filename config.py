@@ -26,11 +26,29 @@ class BaseConfig:
             "WZ_PREDICT_CHANNEL_ID",
             os.getenv("WZ_PREDICT_CHANNEL_IDS", "1238807704877793372"),
         )
-        self.wzPredictChannelIds = [
-            int(ch.strip())
-            for ch in raw_wz_channels.replace(";", ",").split(",")
-            if ch.strip().isdigit()
-        ]
+        self.wzPredictTargets = []
+        for entry in raw_wz_channels.replace(";", ",").split(","):
+            entry = entry.strip()
+            if not entry:
+                continue
+            if ":" in entry:
+                ch_part, role_part = entry.split(":", 1)
+                ch_clean = ch_part.strip().removeprefix("<#").removesuffix(">").strip()
+                role_clean = (
+                    role_part.strip().removeprefix("<@&").removesuffix(">").strip()
+                )
+                if ch_clean.isdigit():
+                    role_id = int(role_clean) if role_clean.isdigit() else None
+                    self.wzPredictTargets.append(
+                        {"channel_id": int(ch_clean), "role_id": role_id}
+                    )
+            else:
+                ch_clean = entry.removeprefix("<#").removesuffix(">").strip()
+                if ch_clean.isdigit():
+                    self.wzPredictTargets.append(
+                        {"channel_id": int(ch_clean), "role_id": None}
+                    )
+        self.wzPredictChannelIds = [t["channel_id"] for t in self.wzPredictTargets]
         self.wzPredictChannelId = (
             self.wzPredictChannelIds[0]
             if self.wzPredictChannelIds

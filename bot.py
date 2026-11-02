@@ -84,18 +84,18 @@ async def warzone_predict_task():
     if now_wib.weekday() != 0:
         return
 
-    channel_ids = baseConfig.wzPredictChannelIds
-    if not channel_ids:
+    targets = baseConfig.wzPredictTargets
+    if not targets:
         print("[WARN] warzone_predict_task: Tidak ada WZ_PREDICT_CHANNEL_ID yang valid.", flush=True)
         return
 
     try:
         (
-            text_msg,
+            _text_msg,
             wz_img,
             ppc_img,
             sheet_data,
-            _ppc_bosses,
+            ppc_bosses,
         ) = await wz_sheet_service.generate_wz_ppc_prediction("current")
         ppc_bytes = ppc_img.getvalue() if ppc_img is not None else None
 
@@ -108,7 +108,9 @@ async def warzone_predict_task():
                 f"weathers={sheet_data.get('untranslated_weathers')}",
             )
 
-        for channel_id in channel_ids:
+        for target in targets:
+            channel_id = target["channel_id"]
+            role_id = target.get("role_id")
             try:
                 channel = bot.get_channel(channel_id)
                 if channel is None:
@@ -116,10 +118,13 @@ async def warzone_predict_task():
                 files = [discord.File(BytesIO(wz_img), filename="warzone.png")]
                 if ppc_bytes is not None:
                     files.append(discord.File(BytesIO(ppc_bytes), filename="ppc.png"))
-                await channel.send(content=text_msg, files=files)
+                channel_text = wz_sheet_service.build_prediction_text(
+                    sheet_data, ppc_bosses, role_id=role_id
+                )
+                await channel.send(content=channel_text, files=files)
                 await send_log_simple(
                     bot,
-                    f"[LOGS] Sent Warzone & PPC Predict (activity={sheet_data.get('activity')}) to channel {channel_id}",
+                    f"[LOGS] Sent Warzone & PPC Predict (activity={sheet_data.get('activity')}) to channel {channel_id} (role={role_id})",
                 )
             except Exception as ch_err:
                 print(
@@ -146,7 +151,7 @@ async def on_ready():
     if not warzone_predict_task.is_running():
         warzone_predict_task.start()
         print(
-            f"[SCHEDULER] Warzone & PPC Predict scheduled every Monday at {baseConfig.wzPredictTimeWib} WIB -> channels {baseConfig.wzPredictChannelIds}",
+            f"[SCHEDULER] Warzone & PPC Predict scheduled every Monday at {baseConfig.wzPredictTimeWib} WIB -> targets {baseConfig.wzPredictTargets}",
             flush=True,
         )
     # twitter_task.start(bot)
