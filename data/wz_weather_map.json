@@ -142,5 +142,169 @@
   "龙斩于野": {
     "name": "Dragon's Bane",
     "description": "Each time the character casts a Signal Orb Skill, CRIT DMG increases by 20% for 8s. Can be stacked up to 4 times."
+  },
+  "深痕幽邃": {
+    "name": "Scarred Notion",
+    "description": "CRIT Rate and CRIT DMG increase by 30% and 100% for 10s after triggering Matrix."
+  },
+  "光焔綻咲": {
+    "name": "Fiery Blossom",
+    "description": "The character's Fire DMG increases by 60% for 8s after every 3-Ping. Duration resets every time it is triggered."
+  },
+  "撃電狂怒": {
+    "name": "Electro Rage",
+    "description": "Character gains an 80% Lightning DMG bonus for 8s every upon entering the battlefield."
+  },
+  "原初空撃": {
+    "name": "Primary Stack",
+    "description": "Nihil DMG increases by 60% for 8s after the character casting Signature. Duration resets every time the effect is triggered."
+  },
+  "五淵深層": {
+    "name": "Depths of the Sea",
+    "description": "Every ping of the character will make them deal 25% more Dark DMG for 8s. Can be stacked up to 4 times."
+  },
+  "重層絵星": {
+    "name": "Astral Atlas",
+    "description": "The character deals 15% more Ice DMG after a 3-Ping. Stacks up to 4 times. Lasts 8s. Duration resets every time the effect is triggered."
+  },
+  "融点過負荷": {
+    "name": "Fiery Blossom",
+    "description": "The character's Fire DMG increases by 45% for 5s after every 3-Ping, stacking up to 3 times."
+  },
+  "万世寒淵": {
+    "name": "Abyss of Tabula Akasha",
+    "description": "Ice DMG increases by 30% after a 3-Ping. Lasts 8s. Can be stacked up to 2 times. Duration resets every time the effect is triggered."
+  },
+  "渓間残響": {
+    "name": "Valley Echos",
+    "description": "The character gains 80% CRIT DMG dealt for 8s every time when healed. Duration resets every time it is triggered."
+  },
+  "秒速奇術": {
+    "name": "Rapid Trick",
+    "description": "Physical DMG increases by 40% for 4s after a 3-Ping and gain 1 Red Signal Orb."
+  },
+  "闇詠再生": {
+    "name": "Dark Regeneration",
+    "description": "After healing, Dark DMG of Signature Moves is increased by 30% for both the healer and the healed unit."
+  },
+  "一閃驚嘆": {
+    "name": "Nightflyer's Tap",
+    "description": "After pinging a Signal Orb, the character's CRIT DMG increases by 80% for 6s."
+  },
+  "輝暁明耀": {
+    "name": "Blazing Radiance",
+    "description": "Basic Attack DMG increases by 15% for 8s upon a 3-Ping, stacking up to 4 times."
+  },
+  "刻焔": {
+    "name": "Fire of Enlightenment",
+    "description": "3-Pings performed within 8s after the character enters the battlefield deal 50% more Fire DMG."
+  },
+  "煌雷斬縛": {
+    "name": "Thunder Unbounded",
+    "description": "When the character pings a Signal Orb of the same color as their last ping, they will deal 60% more Lightning DMG for 8s. Triggering this effect again will renew its duration."
+  },
+  "重閃霹焔": {
+    "name": "Thunderclap",
+    "description": "The character deals 20% more Fire DMG for 8s every after a 3-Ping. This effect can stack up to 3 times. Duration resets every time the effect is triggered."
+  },
+  "執鋒極意": {
+    "name": "Blade Will",
+    "description": "The character deals 5% more Physical DMG for each Signal Orb pinged, stacking up to 8 times and lasting for 8s. Duration resets every time the effect is triggered. The character Ultima deals 40% more damage through Ultima Slash."
+  },
+  "豪雪暴氷": {
+    "name": "Abrupt Blizzard",
+    "description": "Character gains a 60% Ice DMG bonus upon entering the battlefield. The bonus decreases to 20% in 12s."
+  },
+  "叱咤雷鳴": {
+    "name": "Thunderous Lightning",
+    "description": "Upon entering the field, the character gains 50% Lightning DMG Bonus for 3s and 30% Lightning DMG Bonus for 5s after casting the Signature Move."
+  },
+  "超離電荷": {
+    "name": "Hyper Charge",
+    "description": "The character deals 30% more Lightning DMG and 40% more Plasma Beam DMG. Meanwhile, gains 1 Red Orb every time when activating the Plasma Beam."
+  },
+  "余剰電力": {
+    "name": "Electro Overflow",
+    "description": "After casting a Signal Orb skill, Lightning DMG of the character increases by 20% for 8s, stacking up to 3 times. Duration resets every time it is triggered."
+  },
+  "矛盾消沈": {
+    "name": "Paradox Annihilation",
+    "description": "Character gains a 60% Nihil DMG Bonus for 18s after entering the battlefield."
+  },
+  "白熱灼炎": {
+    "name": "Scorching Flame",
+    "description": "Each time you heal a target, your character gains 40% Fire DMG. Additional triggers will refresh the duration."
+  },
+  "鳴音瓦砕": {
+    "name": "Shattering Soprano",
+    "description": "Character deals 80% more CRIT DMG for 12s after being switched in."
+  },
+  "オールイン": {
+    "name": "Lucky Show Hand",
+    "description": "Character gains a 10% Dark DMG Bonus for each 1 Signal Orb pinged, up to 60%, for 8s. Duration resets every time the effect is triggered."
+  },
+  "凝氷極寒": {
+    "name": "Harrowing Freeze",
+    "description": "Character deals 60% more Glaciation DMG for 8s every after a 3-Ping. Duration resets every time it is triggered."
+  },
+  "熾炎の舞": {
+    "name": "Flame Dance",
+    "description": "All members' Fire DMG +50% for 23s when HP is below 40%."
+  },
+  "高速抜刀": {
+    "name": "Rapid Unsheathe",
+    "description": "The character deals 20% more Physical DMG. Upon entering the battlefield, the character deals 30% more Ultima Slash DMG, dropping to 15% after 12s."
+  },
+  "浄罪熾焔": {
+    "name": "Purgatorial Fire",
+    "description": "The character deals 30% more Fire DMG and 40% more Ignition DMG."
+  },
+  "畳影沈暮": {
+    "name": "Shadows of Dusk",
+    "description": "The character has 30% higher Dark DMG dealt for 12s after entering the battlefield. Each 3-Ping will increase the Dark DMG dealt by another 10%. The effect lasts 8s. Max 3 stacks."
+  },
+  "竜斬る緑野": {
+    "name": "Dragon's Bane",
+    "description": "Each time the character casts a Signal Orb Skill, CRIT DMG increases by 20% for 8s. Can be stacked up to 4 times."
+  },
+  "星追う飛火": {
+    "name": "Stellar Blaze",
+    "description": "Each time the character casts a Signal Orb Skill, Fire DMG increases by 15% and Ignition DMG increases by 20% for 8s. Can be stacked up to twice."
+  },
+  "暮色連淵": {
+    "name": "Twilight Chasm",
+    "description": "The character deals 30% more Dark DMG and 40% more Darkflow DMG."
+  },
+  "破断氷河": {
+    "name": "Riven Glacier",
+    "description": "Ice DMG increases by 30% for 8s after the character casts Signature. Each ping made increases Ice DMG by 10% for 8s. Max 3 stacks."
+  },
+  "刻刃凛夜": {
+    "name": "Nightbound Engraving",
+    "description": "Character gains a 60% Dark DMG Bonus for 12s after entering the battlefield."
+  },
+  "踏乱破嵐": {
+    "name": "Ruinous Trample",
+    "description": "Character deals 30% more Physical DMG for 12s after entering the battlefield. After casting orb skills, Ultima Slash DMG increases by 30% for 12s."
+  },
+  "カラスの悼唱": {
+    "name": "Raven's Dirge",
+    "description": "Character deals 30% more Nihil DMG for 12s after entering the battlefield. After casting Signature Move, Nihil DMG increases by 30% for 12s."
+  },
+  "訣寒霜燼": {
+    "name": "Rimed Adieu",
+    "description": "Character gains a 60% Ice DMG Bonus for 15s after entering the battlefield. Duration resets every time it is triggered."
+  },
+  "絶炎再起": {
+    "name": "Flame Resurged",
+    "description": "Characters carrying Ignition Effect deal 30% more Fire DMG and 40% more Ignition DMG."
+  },
+  "暗夜雷鳴": {
+    "name": "Thunderous Dawn",
+    "description": "Character gains a 30% Lightning DMG Bonus for 12s after entering the battlefield. Each 3-Ping additionally increases Lightning DMG by 10% for 8s, stacking up to 3 times."
+  },
+  "斬徹裂鋒": {
+    "name": "Rending Edge",
+    "description": "The character deals 80% more CRIT DMG for 15s after being switched in. Duration resets every time it is triggered."
   }
 }

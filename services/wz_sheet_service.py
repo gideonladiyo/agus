@@ -220,8 +220,13 @@ class WzSheetService:
             "atau isi `WZ_APPS_SCRIPT_URL` di `.env`."
         )
 
-    def _update_and_render_sync(self, activity_id="current") -> tuple[dict, bytes]:
-        sheet_data = warzone_service.get_cn_warzone_sheet_data(id=activity_id)
+    def _update_and_render_sync(
+        self, activity_id="current", server=None
+    ) -> tuple[dict, bytes]:
+        wz_server = server or getattr(baseConfig, "wzPredictServer", "jp")
+        sheet_data = warzone_service.get_warzone_sheet_data(
+            server=wz_server, id=activity_id
+        )
         updates = self.build_cell_updates(sheet_data)
         self.write_updates_to_sheet(updates)
 
@@ -237,9 +242,13 @@ class WzSheetService:
         final_image_bytes = self._composite_logos(raw_image_bytes, sheet_data)
         return sheet_data, final_image_bytes
 
-    async def update_and_render(self, activity_id="current") -> tuple[dict, bytes]:
+    async def update_and_render(
+        self, activity_id="current", server=None
+    ) -> tuple[dict, bytes]:
         async with self._lock:
-            return await asyncio.to_thread(self._update_and_render_sync, activity_id)
+            return await asyncio.to_thread(
+                self._update_and_render_sync, activity_id, server
+            )
 
     @staticmethod
     def build_prediction_text(sheet_data: dict, ppc_bosses: list[dict]) -> str:
@@ -256,13 +265,17 @@ class WzSheetService:
         )
 
     async def generate_wz_ppc_prediction(
-        self, activity_id="current"
+        self, activity_id="current", server=None, ppc_server=None
     ) -> tuple[str, bytes, io.BytesIO | None, dict, list[dict]]:
+        wz_srv = server or getattr(baseConfig, "wzPredictServer", "jp")
+        ppc_srv = ppc_server or getattr(baseConfig, "ppcPredictServer", "jp")
+
         sheet_data, wz_image_bytes = await self.update_and_render(
-            activity_id=activity_id
+            activity_id=activity_id,
+            server=wz_srv,
         )
         ppc_bosses = await asyncio.to_thread(
-            ppc_service.get_cn_ppc_predict_bosses, "ultimate"
+            ppc_service.get_ppc_predict_bosses, ppc_srv, "ultimate"
         )
         ppc_img = await merge_images_horizontal(b["imgUrl"] for b in ppc_bosses)
         text_msg = self.build_prediction_text(sheet_data, ppc_bosses)

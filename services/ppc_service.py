@@ -31,12 +31,12 @@ class PpcService:
         data = self.get_current_ppc(server, type)
         return [PpcBoss.parsing_json(boss).to_dict() for boss in data["data"]["ppc"]["bosses"]]
 
-    def get_cn_ppc_predict_bosses(self, type="ultimate") -> list[dict]:
+    def get_ppc_predict_bosses(self, server="jp", type="ultimate") -> list[dict]:
         """
-        Ambil current PPC dari server CN (default: ultimate -> /servers/cn/ppc/current/4),
+        Ambil current PPC dari server pilihan (default: jp, type: ultimate),
         dan terjemahkan nama boss ke Bahasa Inggris menggunakan data/ppc_boss_map.json.
         """
-        data = self.get_current_ppc("cn", type)
+        data = self.get_current_ppc(server, type)
         bosses_raw = data.get("data", {}).get("ppc", {}).get("bosses", [])
         boss_map = self._load_boss_map()
         by_boss_id = boss_map.get("by_boss_id", {})
@@ -67,6 +67,9 @@ class PpcService:
                 }
             )
         return results
+
+    def get_cn_ppc_predict_bosses(self, type="ultimate") -> list[dict]:
+        return self.get_ppc_predict_bosses(server="cn", type=type)
 
     def get_current_ppc_item(self, server, type):
         data = self.get_current_ppc(server, type)

@@ -37,6 +37,8 @@ class BaseConfig:
             else 1238807704877793372
         )
         self.wzPredictTimeWib = os.getenv("WZ_PREDICT_TIME_WIB", "04:00")
+        self.wzPredictServer = os.getenv("WZ_PREDICT_SERVER", "jp").lower()
+        self.ppcPredictServer = os.getenv("PPC_PREDICT_SERVER", "jp").lower()
         self.wzPredictZonesPath = os.getenv(
             "WZ_PREDICT_ZONES_PATH", "data/pgr_warzone_zones.json"
         )

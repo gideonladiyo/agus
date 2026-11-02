@@ -126,25 +126,25 @@ class WarzoneService:
             sunday_date = end_dt.date()
         return monday_date.strftime("%d %b %Y"), sunday_date.strftime("%d %b %Y")
 
-    def get_cn_warzone_predict(self, id="current") -> dict:
+    def get_warzone_predict(self, server="jp", id="current") -> dict:
         if not self.zones_by_id:
             self._load_zones_db()
 
-        response = self.api_service.warzone_current(server="cn", id=id)
+        response = self.api_service.warzone_current(server=server, id=id)
         wz = response["data"]["warzone"]
 
         monday_str, sunday_str = self.format_cycle_dates_wib(wz["start"], wz["end"])
         translated_zones = []
         untranslated_ids = []
 
-        for cn_zone in wz.get("area", {}).get("zones", []):
-            zid = cn_zone.get("id")
+        for z in wz.get("area", {}).get("zones", []):
+            zid = z.get("id")
             try:
                 mapped_zone = self.zones_by_id[str(zid)]
                 zone_name, zone_desc, buff_descs = self._extract_zone_fields(mapped_zone)
             except KeyError:
                 untranslated_ids.append(zid)
-                zone_name, zone_desc, buff_descs = self._extract_zone_fields(cn_zone)
+                zone_name, zone_desc, buff_descs = self._extract_zone_fields(z)
 
             buff_text = self.combine_buff_descriptions(buff_descs)
             translated_zones.append(
@@ -167,9 +167,12 @@ class WarzoneService:
             "untranslated_ids": untranslated_ids,
         }
 
-    def get_cn_warzone_sheet_data(self, id="current") -> dict:
+    def get_cn_warzone_predict(self, id="current") -> dict:
+        return self.get_warzone_predict(server="cn", id=id)
+
+    def get_warzone_sheet_data(self, server="jp", id="current") -> dict:
         """
-        Ambil data warzone CN berdasarkan activity id ('current' atau angka seperti 594),
+        Ambil data warzone berdasarkan server ('jp' atau 'cn') dan activity id ('current' atau angka),
         terjemahkan zone, buffs (Environment), weathers (Buff), elemen, tipe, dan logo URL.
         """
         if not self.zones_by_id:
@@ -177,7 +180,7 @@ class WarzoneService:
         if not self.logo_by_buff_id or not self.weather_map or not self.elem_by_buff_id:
             self._load_logo_and_weather_maps()
 
-        response = self.api_service.warzone_current(server="cn", id=id)
+        response = self.api_service.warzone_current(server=server, id=id)
         wz = response["data"]["warzone"]
         activities_range = response["data"].get("activities", {})
 
@@ -186,8 +189,8 @@ class WarzoneService:
         untranslated_zone_ids = []
         untranslated_weathers = []
 
-        for cn_zone in wz.get("area", {}).get("zones", []):
-            zid = cn_zone.get("id")
+        for raw_zone in wz.get("area", {}).get("zones", []):
+            zid = raw_zone.get("id")
             try:
                 mapped_zone = self.zones_by_id[str(zid)]
                 zone_name = mapped_zone.get("name", "Unknown Zone")
@@ -195,9 +198,9 @@ class WarzoneService:
                 raw_buffs = mapped_zone.get("buffs", [])
             except KeyError:
                 untranslated_zone_ids.append(zid)
-                zone_name = cn_zone.get("name", "Unknown Zone")
-                zone_desc = cn_zone.get("description", "No description")
-                raw_buffs = cn_zone.get("buffs", [])
+                zone_name = raw_zone.get("name", "Unknown Zone")
+                zone_desc = raw_zone.get("description", "No description")
+                raw_buffs = raw_zone.get("buffs", [])
 
             parts_env = []
             elem_names = []
@@ -224,15 +227,15 @@ class WarzoneService:
             zone_type = self.get_zone_type(zone_desc)
 
             parts_weather = []
-            for w in cn_zone.get("weathers", []):
-                cn_w_name = w.get("name", "")
+            for w in raw_zone.get("weathers", []):
+                w_raw_name = w.get("name", "")
                 try:
-                    mapped_w = self.weather_map[cn_w_name]
+                    mapped_w = self.weather_map[w_raw_name]
                     w_name = mapped_w["name"]
                     w_desc = mapped_w["description"]
                 except KeyError:
-                    untranslated_weathers.append(cn_w_name)
-                    w_name = cn_w_name
+                    untranslated_weathers.append(w_raw_name)
+                    w_name = w_raw_name
                     w_desc = w.get("description", "")
                 parts_weather.append({"name": w_name, "description": w_desc})
 
@@ -261,6 +264,9 @@ class WarzoneService:
             "untranslated_zone_ids": untranslated_zone_ids,
             "untranslated_weathers": untranslated_weathers,
         }
+
+    def get_cn_warzone_sheet_data(self, id="current") -> dict:
+        return self.get_warzone_sheet_data(server="cn", id=id)
 
 
 warzone_service = WarzoneService()

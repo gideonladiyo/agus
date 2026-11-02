@@ -296,7 +296,7 @@ async def wz(ctx, server):
             await ctx.send(error_message())
 
 
-@bot.hybrid_command(description="Show the Warzone & PPC prediction from CN server")
+@bot.hybrid_command(description="Show the Warzone & PPC prediction from JP server")
 @app_commands.guild_only()
 async def predwz(ctx):
     if await server_permission(ctx):
@@ -321,7 +321,7 @@ async def predwz(ctx):
 
 
 @bot.hybrid_command(
-    description="Update Warzone sheet and send CN Warzone & PPC Prediction"
+    description="Update Warzone sheet and send JP Warzone & PPC Prediction"
 )
 @app_commands.guild_only()
 async def wztest(ctx):
@@ -333,7 +333,8 @@ async def wztest(ctx):
     )
 
     try:
-        print("[WZTEST] Updating sheet and generating CN Warzone & PPC prediction...", flush=True)
+        srv_name = baseConfig.wzPredictServer.upper()
+        print(f"[WZTEST] Updating sheet and generating {srv_name} Warzone & PPC prediction...", flush=True)
         (
             text_msg,
             wz_img,
@@ -342,7 +343,7 @@ async def wztest(ctx):
             _ppc_bosses,
         ) = await wz_sheet_service.generate_wz_ppc_prediction("current")
         act_num = sheet_data.get("activity", "current")
-        print(f"[WZTEST] Done rendering CN Warzone #{act_num} & PPC.", flush=True)
+        print(f"[WZTEST] Done rendering {srv_name} Warzone #{act_num} & PPC.", flush=True)
 
         files = [discord.File(BytesIO(wz_img), filename="warzone.png")]
         if ppc_img is not None:
